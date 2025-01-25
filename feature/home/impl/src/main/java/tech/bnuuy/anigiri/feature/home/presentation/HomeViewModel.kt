@@ -10,8 +10,8 @@ import tech.bnuuy.anigiri.feature.home.presentation.model.HomeAction
 import tech.bnuuy.anigiri.feature.home.presentation.model.HomeSideEffect
 import tech.bnuuy.anigiri.feature.home.presentation.model.HomeState
 
-internal class  HomeViewModel(
-//    val getRandomReleaseUseCase: GetRandomReleaseUseCase,
+internal class HomeViewModel(
+    val getRandomReleaseUseCase: GetRandomReleaseUseCase,
     val getLatestReleasesUseCase: GetLatestReleasesUseCase,
 ) : ContainerHost<HomeState, HomeSideEffect>, ViewModel() {
     override val container = container<HomeState, HomeSideEffect>(HomeState())
@@ -23,11 +23,12 @@ internal class  HomeViewModel(
     fun dispatch(action: HomeAction) {
         when (action) {
             HomeAction.Refresh -> getLatestReleases()
+            HomeAction.FetchRandomRelease -> getRandomRelease()
         }
     }
     
     private fun getLatestReleases() = intent {
-        stateLoading()
+        latestReleasesLoadingState()
         
         val result = runCatching { 
             getLatestReleasesUseCase()
@@ -42,33 +43,28 @@ internal class  HomeViewModel(
     }
     
     @OptIn(OrbitExperimental::class)
-    private suspend fun stateLoading() = subIntent {
+    private suspend fun latestReleasesLoadingState() = subIntent {
         reduce {
             state.copy(
-//                latestReleases = listOf(),
                 isLoading = true,
                 error = null,
             )
         }
     }
 
-//    fun getRandomTitle() = intent {
-//        reduce {
-//            state.copy(
-//                release = null,
-//                isLoading = true,
-//                error = null,
-//            )
-//        }
-//        val result = runCatching {
-//            getRandomReleaseUseCase()
-//        }
-//        reduce {
-//            state.copy(
-//                release = result.getOrNull(),
-//                isLoading = false,
-//                error = result.exceptionOrNull(),
-//            )
-//        }
-//    }
+    private fun getRandomRelease() = intent {
+        reduce {
+            state.copy(isRandomReleaseLoading = true)
+        }
+        runCatching {
+            getRandomReleaseUseCase()
+        }.onSuccess { 
+            postSideEffect(HomeSideEffect.GoToRelease(it))
+        }.onFailure { 
+            postSideEffect(HomeSideEffect.ShowError(it))
+        }
+        reduce {
+            state.copy(isRandomReleaseLoading = false)
+        }
+    }
 }

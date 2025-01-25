@@ -2,4 +2,6 @@
 <resources>
     <string name="new_episodes">Новые эпизоды</string>
     <string name="search_hint">Поиск</string>
+    <string name="random_release">Случайный релиз</string>
+    <string name="error">Ошибка: %1$s</string>
 </resources>

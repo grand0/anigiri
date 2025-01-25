@@ -1,7 +1,7 @@
 package tech.bnuuy.anigiri.feature.home.data.repository
 
-import tech.bnuuy.anigiri.core.network.repository.AnimeRepository
 import tech.bnuuy.anigiri.core.network.model.Release
+import tech.bnuuy.anigiri.core.network.repository.AnimeRepository
 import tech.bnuuy.anigiri.feature.home.api.data.repository.ReleaseRepository
 
 internal class ReleaseRepositoryImpl(

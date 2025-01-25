@@ -6,4 +6,6 @@ internal data class HomeState(
     val latestReleases: List<Release> = emptyList(),
     val isLoading: Boolean = true,
     val error: Throwable? = null,
+    
+    val isRandomReleaseLoading: Boolean = false,
 )

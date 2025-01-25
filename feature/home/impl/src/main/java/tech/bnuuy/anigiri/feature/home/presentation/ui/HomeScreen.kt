@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -23,12 +25,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
@@ -36,44 +42,75 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.registry.ScreenRegistry
 import cafe.adriel.voyager.core.registry.rememberScreen
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 import tech.bnuuy.anigiri.core.designsystem.component.ShimmerLoader
-import tech.bnuuy.anigiri.core.designsystem.theme.Typography
 import tech.bnuuy.anigiri.core.designsystem.plus
+import tech.bnuuy.anigiri.core.designsystem.theme.Typography
+import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
 import tech.bnuuy.anigiri.core.nav.Routes
 import tech.bnuuy.anigiri.core.network.model.Release
-import tech.bnuuy.anigiri.feature.home.presentation.HomeViewModel
 import tech.bnuuy.anigiri.feature.home.R
+import tech.bnuuy.anigiri.feature.home.presentation.HomeViewModel
 import tech.bnuuy.anigiri.feature.home.presentation.model.HomeAction
+import tech.bnuuy.anigiri.feature.home.presentation.model.HomeSideEffect
 
 class HomeScreen : Screen {
 
     @Composable
     override fun Content() {
+        val nav = LocalNavigator.currentOrThrow
+        val goToRelease = { release: Release ->
+            nav.push(ScreenRegistry.get(Routes.Release(release.id)))
+        }
+        
+        val context = LocalContext.current
+        val snackbarHostState = LocalSnackbarHostState.current
+        val coroutineScope = rememberCoroutineScope()
+        
         val vm = koinViewModel<HomeViewModel>()
         val state by vm.collectAsState()
+        
+        vm.collectSideEffect { 
+            when (it) {
+                is HomeSideEffect.GoToRelease -> goToRelease(it.release)
+                is HomeSideEffect.ShowError -> {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            context.getString(
+                                R.string.error,
+                                it.error.toString(),
+                            ),
+                        )
+                    }
+                }
+            }
+        }
 
         Scaffold(
             Modifier.fillMaxSize(),
-            topBar = {
-                AppBar()
-            }
+            topBar = { AppBar() },
+            snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { innerPadding ->
             HomeList(
                 latestReleases = state.latestReleases,
@@ -81,6 +118,8 @@ class HomeScreen : Screen {
                 onRefresh = { vm.dispatch(HomeAction.Refresh) },
                 contentPadding = innerPadding,
                 error = state.error,
+                onRandomClick = { vm.dispatch(HomeAction.FetchRandomRelease) },
+                isRandomLoading = state.isRandomReleaseLoading,
             )
         }
     }
@@ -100,6 +139,7 @@ class HomeScreen : Screen {
         Row(
             Modifier
                 .background(gradient)
+                .safeDrawingPadding()
                 .padding(gapSize)
                 .height(64.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -161,6 +201,8 @@ class HomeScreen : Screen {
         isLoading: Boolean,
         onRefresh: () -> Unit,
         error: Throwable? = null,
+        isRandomLoading: Boolean,
+        onRandomClick: () -> Unit,
         contentPadding: PaddingValues = PaddingValues(0.dp),
     ) {
         val pullToRefreshState = rememberPullToRefreshState()
@@ -174,7 +216,7 @@ class HomeScreen : Screen {
                     isRefreshing = isLoading,
                     modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .padding(top = contentPadding.calculateTopPadding() / 2),
+                        .padding(top = contentPadding.calculateTopPadding() * 2 / 3),
                 )
             }
         ) {
@@ -199,13 +241,48 @@ class HomeScreen : Screen {
                         LatestReleases(latestReleases)
                     }
                 }
-
+                
+                item {
+                    Box(Modifier.padding(16.dp)) {
+                        FetchRandomReleaseButton(
+                            onClick = onRandomClick,
+                            isLoading = isRandomLoading,
+                        )
+                    }
+                }
+                
                 items(50) {
                     Text("Item $it",
                         Modifier
                             .fillMaxSize()
                             .padding(16.dp))
                 }
+            }
+        }
+    }
+
+    @Composable
+    fun FetchRandomReleaseButton(
+        onClick: () -> Unit,
+        isLoading: Boolean,
+    ) {
+        OutlinedButton(
+            onClick = onClick,
+            enabled = !isLoading,
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) { 
+                
+                if (isLoading) {
+                    CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+                } else {
+                    Icon(Icons.Default.Casino, contentDescription = null)
+                }
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.random_release))
             }
         }
     }
@@ -232,16 +309,15 @@ class HomeScreen : Screen {
 
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.clickable {
-                        nav.push(releaseScreen)
-                    }
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .clickable {
+                            nav.push(releaseScreen)
+                        }
+                        .padding(8.dp)
                 ) {
-                    ReleasePoster(
-                        release,
-                        modifier = Modifier
-                            .padding(8.dp),
-                    )
-
+                    ReleasePoster(release)
+                    Spacer(Modifier.height(8.dp))
                     relativeDate?.let {
                         Text(
                             it.toString(),
@@ -320,10 +396,5 @@ class HomeScreen : Screen {
                 }
             }
         }
-    }
-
-    @Composable
-    private fun ReleaseItemLoader() {
-
     }
 }
