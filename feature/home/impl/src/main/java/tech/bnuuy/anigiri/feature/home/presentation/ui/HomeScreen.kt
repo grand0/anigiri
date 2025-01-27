@@ -69,7 +69,7 @@ import tech.bnuuy.anigiri.core.designsystem.plus
 import tech.bnuuy.anigiri.core.designsystem.theme.Typography
 import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
 import tech.bnuuy.anigiri.core.nav.Routes
-import tech.bnuuy.anigiri.core.network.model.Release
+import tech.bnuuy.anigiri.feature.home.api.data.model.Release
 import tech.bnuuy.anigiri.feature.home.R
 import tech.bnuuy.anigiri.feature.home.presentation.HomeViewModel
 import tech.bnuuy.anigiri.feature.home.presentation.model.HomeAction
@@ -303,8 +303,8 @@ class HomeScreen : Screen {
             items(releases) { release ->
                 val releaseScreen = rememberScreen(Routes.Release(release.id))
 
-                val relativeDate = release.latestEpisode?.run {
-                    DateUtils.getRelativeTimeSpanString(updatedAt.toEpochMilliseconds())
+                val relativeDate = release.latestEpisodePublishTime?.let {
+                    DateUtils.getRelativeTimeSpanString(it.toEpochMilliseconds())
                 }
 
                 Column(

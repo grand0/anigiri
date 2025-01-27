@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data class EpisodeResponse(
+data class EpisodeResponse(
     @SerialName("id")
     val id: String,
     @SerialName("name")
@@ -32,7 +32,7 @@ internal data class EpisodeResponse(
 ) {
 
     @Serializable
-    internal data class EpisodeStartEndTimestampsResponse(
+    data class EpisodeStartEndTimestampsResponse(
         @SerialName("start")
         val start: Int?,
         @SerialName("stop")
@@ -40,7 +40,7 @@ internal data class EpisodeResponse(
     )
 
     @Serializable
-    internal data class EpisodePreviewResponse(
+    data class EpisodePreviewResponse(
         @SerialName("src")
         val srcUrl: String?,
         @SerialName("thumbnail")

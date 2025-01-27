@@ -1,6 +1,6 @@
 package tech.bnuuy.anigiri.feature.home.api.data.repository
 
-import tech.bnuuy.anigiri.core.network.model.Release
+import tech.bnuuy.anigiri.feature.home.api.data.model.Release
 
 interface ReleaseRepository {
     suspend fun getRandomRelease(): Release

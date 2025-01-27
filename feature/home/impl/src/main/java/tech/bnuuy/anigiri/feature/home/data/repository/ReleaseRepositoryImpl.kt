@@ -1,18 +1,20 @@
 package tech.bnuuy.anigiri.feature.home.data.repository
 
-import tech.bnuuy.anigiri.core.network.model.Release
-import tech.bnuuy.anigiri.core.network.repository.AnimeRepository
+import tech.bnuuy.anigiri.core.network.datasource.AnimeDataSource
+import tech.bnuuy.anigiri.feature.home.api.data.model.Release
 import tech.bnuuy.anigiri.feature.home.api.data.repository.ReleaseRepository
+import tech.bnuuy.anigiri.feature.home.data.mapper.listToDomain
+import tech.bnuuy.anigiri.feature.home.data.mapper.toDomain
 
 internal class ReleaseRepositoryImpl(
-    val animeRepository: AnimeRepository,
+    val source: AnimeDataSource,
 ) : ReleaseRepository {
     
     override suspend fun getRandomRelease(): Release {
-        return animeRepository.getRandomRelease()
+        return source.getRandomRelease()[0].toDomain()
     }
 
     override suspend fun getLatestReleases(): List<Release> {
-        return animeRepository.getLatestReleases()
+        return source.getLatestReleases().listToDomain()
     }
 }

@@ -49,7 +49,7 @@ import org.orbitmvi.orbit.compose.collectAsState
 import tech.bnuuy.anigiri.core.designsystem.component.ExpandableCard
 import tech.bnuuy.anigiri.core.designsystem.component.ShimmerLoader
 import tech.bnuuy.anigiri.core.designsystem.theme.Typography
-import tech.bnuuy.anigiri.core.network.model.Release
+import tech.bnuuy.anigiri.feature.release.api.data.model.Release
 import tech.bnuuy.anigiri.feature.release.R
 import tech.bnuuy.anigiri.feature.release.presentation.ReleaseViewModel
 

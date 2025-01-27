@@ -17,4 +17,11 @@ class Anime() {
         @Resource("{id}")
         class Id(val parent: Releases = Releases(), val id: Int)
     }
+    
+    @Resource("catalog")
+    class Catalog(val parent: Anime = Anime()) {
+        
+        @Resource("releases")
+        class Releases(val parent: Catalog = Catalog())
+    }
 }

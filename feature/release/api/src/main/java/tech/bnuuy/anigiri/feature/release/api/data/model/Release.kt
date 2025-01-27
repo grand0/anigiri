@@ -1,4 +1,4 @@
-package tech.bnuuy.anigiri.core.network.model
+package tech.bnuuy.anigiri.feature.release.api.data.model
 
 data class Release(
     val id: Int,
@@ -15,8 +15,5 @@ data class Release(
     val episodeDurationMinutes: Int?,
     val genres: List<Genre>?,
     val members: Map<String, List<String>>?,
-    
-    // context-based fields
-    val latestEpisode: Episode?,
     val episodes: List<Episode>?,
 )

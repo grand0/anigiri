@@ -1,4 +1,4 @@
-package tech.bnuuy.anigiri.core.network.model
+package tech.bnuuy.anigiri.feature.release.api.data.model
 
 import kotlinx.datetime.Instant
 import kotlin.time.Duration
@@ -16,12 +16,12 @@ data class Episode(
     val duration: Duration,
     val updatedAt: Instant,
 ) {
-    
+
     data class StartEndTimestamps(
         val start: Duration?,
         val end: Duration?,
     )
-    
+
     data class MediaStreams(
         val hls480: String?,
         val hls720: String?,

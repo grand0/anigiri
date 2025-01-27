@@ -1,6 +1,6 @@
 package tech.bnuuy.anigiri.feature.home.presentation.model
 
-import tech.bnuuy.anigiri.core.network.model.Release
+import tech.bnuuy.anigiri.feature.home.api.data.model.Release
 
 internal data class HomeState(
     val latestReleases: List<Release> = emptyList(),

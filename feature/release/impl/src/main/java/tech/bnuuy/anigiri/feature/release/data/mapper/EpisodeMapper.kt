@@ -1,12 +1,12 @@
-package tech.bnuuy.anigiri.core.network.mapper
+package tech.bnuuy.anigiri.feature.release.data.mapper
 
 import io.ktor.http.URLBuilder
 import io.ktor.http.appendPathSegments
 import io.ktor.http.parseUrl
 import kotlinx.datetime.Instant
-import tech.bnuuy.anigiri.core.network.BuildConfig
 import tech.bnuuy.anigiri.core.network.datasource.response.EpisodeResponse
-import tech.bnuuy.anigiri.core.network.model.Episode
+import tech.bnuuy.anigiri.feature.release.BuildConfig
+import tech.bnuuy.anigiri.feature.release.api.data.model.Episode
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -17,12 +17,12 @@ internal fun List<EpisodeResponse>.mapList(): List<Episode> = map {
 internal fun EpisodeResponse.toDomain(): Episode {
     val srcUrl = preview.srcUrl?.let {
         URLBuilder(parseUrl(BuildConfig.ANILIBRIA_STORAGE_BASE_URL)!!)
-            .appendPathSegments(preview.srcUrl)
+            .appendPathSegments(it)
             .toString()
     }
     val thumbUrl = preview.thumbnailUrl?.let {
         URLBuilder(parseUrl(BuildConfig.ANILIBRIA_STORAGE_BASE_URL)!!)
-            .appendPathSegments(preview.thumbnailUrl)
+            .appendPathSegments(it)
             .toString()
     }
 

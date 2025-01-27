@@ -1,14 +1,15 @@
 package tech.bnuuy.anigiri.feature.release.data.repository
 
-import tech.bnuuy.anigiri.core.network.model.Release
-import tech.bnuuy.anigiri.core.network.repository.AnimeRepository
+import tech.bnuuy.anigiri.core.network.datasource.AnimeDataSource
+import tech.bnuuy.anigiri.feature.release.api.data.model.Release
 import tech.bnuuy.anigiri.feature.release.api.data.repository.ReleaseRepository
+import tech.bnuuy.anigiri.feature.release.data.mapper.toDomain
 
 internal class ReleaseRepositoryImpl(
-    val animeRepository: AnimeRepository,
+    val source: AnimeDataSource,
 ) : ReleaseRepository {
     
     override suspend fun getRelease(id: Int): Release {
-        return animeRepository.getRelease(id)
+        return source.getRelease(id).toDomain()
     }
 }

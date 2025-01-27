@@ -34,4 +34,6 @@ include(":feature:release:api")
 include(":feature:release:impl")
 
 include(":core:nav")
+
+include(":feature:search:api")
  

@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data class ReleaseResponse(
+data class ReleaseResponse(
     @SerialName("id")
     val id: Int,
     @SerialName("name")
@@ -40,14 +40,14 @@ internal data class ReleaseResponse(
 ) {
 
     @Serializable
-    internal data class ReleaseNameResponse(
+    data class ReleaseNameResponse(
         val main: String,
         val english: String?,
         val alternative: String?,
     )
 
     @Serializable
-    internal data class ReleasePosterResponse(
+    data class ReleasePosterResponse(
         @SerialName("src")
         val srcUrl: String?,
         @SerialName("thumbnail")
@@ -55,13 +55,13 @@ internal data class ReleaseResponse(
     )
 
     @Serializable
-    internal data class ReleaseAgeRatingResponse(
+    data class ReleaseAgeRatingResponse(
         @SerialName("label")
         val label: String,
     )
 
     @Serializable
-    internal data class ReleaseGenreResponse(
+    data class ReleaseGenreResponse(
         @SerialName("id")
         val id: Int,
         @SerialName("name")
@@ -69,7 +69,7 @@ internal data class ReleaseResponse(
     )
 
     @Serializable
-    internal data class ReleaseMemberResponse(
+    data class ReleaseMemberResponse(
         @SerialName("nickname")
         val name: String,
         @SerialName("role")
@@ -77,7 +77,7 @@ internal data class ReleaseResponse(
     ) {
 
         @Serializable
-        internal data class ReleaseMemberRoleResponse(
+        data class ReleaseMemberRoleResponse(
             @SerialName("description")
             val name: String,
         )

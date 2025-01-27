@@ -1,6 +1,6 @@
 package tech.bnuuy.anigiri.feature.home.usecase
 
-import tech.bnuuy.anigiri.core.network.model.Release
+import tech.bnuuy.anigiri.feature.home.api.data.model.Release
 import tech.bnuuy.anigiri.feature.home.api.data.repository.ReleaseRepository
 import tech.bnuuy.anigiri.feature.home.api.usecase.GetLatestReleasesUseCase
 
@@ -9,6 +9,6 @@ class GetLatestReleasesUseCaseImpl(
 ) : GetLatestReleasesUseCase {
     
     override suspend fun invoke(): List<Release> {
-        return repository.getLatestReleases().sortedByDescending { it.latestEpisode?.updatedAt }
+        return repository.getLatestReleases().sortedByDescending { it.latestEpisodePublishTime }
     }
 }
