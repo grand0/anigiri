@@ -18,7 +18,7 @@ data class ReleaseResponse(
     @SerialName("poster")
     val posters: ReleasePosterResponse,
     @SerialName("description")
-    val description: String,
+    val description: String = "",
     @SerialName("age_rating")
     val ageRating: ReleaseAgeRatingResponse,
     @SerialName("episodes_total")

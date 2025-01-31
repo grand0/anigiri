@@ -5,6 +5,7 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.ANDROID
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
@@ -16,7 +17,6 @@ import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 import tech.bnuuy.anigiri.core.network.BuildConfig
 import tech.bnuuy.anigiri.core.network.datasource.AnimeDataSource
-import tech.bnuuy.anigiri.core.network.repository.AnimeRepository
 
 val networkModule = module {
     single<HttpClient> {
@@ -25,17 +25,18 @@ val networkModule = module {
                 json(Json {
                     ignoreUnknownKeys = true
                     explicitNulls = false
+                    coerceInputValues = true
                 })
             }
             install(Resources)
             install(DefaultRequest)
 
-            if (BuildConfig.DEBUG) {
+//            if (BuildConfig.DEBUG) {
                 install(Logging) {
-                    logger = Logger.DEFAULT
+                    logger = Logger.ANDROID
                     level = LogLevel.ALL
                 }
-            }
+//            }
 
             defaultRequest {
                 url(BuildConfig.ANILIBRIA_BASE_URL)
@@ -44,5 +45,4 @@ val networkModule = module {
     }
     
     factoryOf(::AnimeDataSource)
-    factoryOf(::AnimeRepository)
 }

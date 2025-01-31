@@ -83,6 +83,7 @@ class HomeScreen : Screen {
         val goToRelease = { release: Release ->
             nav.push(ScreenRegistry.get(Routes.Release(release.id)))
         }
+        val goToSearch = { nav.push(ScreenRegistry.get(Routes.Search)) }
         
         val context = LocalContext.current
         val snackbarHostState = LocalSnackbarHostState.current
@@ -109,7 +110,7 @@ class HomeScreen : Screen {
 
         Scaffold(
             Modifier.fillMaxSize(),
-            topBar = { AppBar() },
+            topBar = { AppBar(goToSearch) },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { innerPadding ->
             HomeList(
@@ -126,7 +127,9 @@ class HomeScreen : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun AppBar() {
+    private fun AppBar(
+        goToSearch: () -> Unit
+    ) {
         val gradient = Brush.verticalGradient(
             colors = listOf(
                 MaterialTheme.colorScheme.surface.copy(alpha = 1.0f),
@@ -153,7 +156,7 @@ class HomeScreen : Screen {
                         shape = RoundedCornerShape(8.dp),
                     )
                     .clip(RoundedCornerShape(8.dp))
-                    .clickable {},
+                    .clickable(onClick = goToSearch),
             ) {
                 Box(
                     Modifier

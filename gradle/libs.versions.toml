@@ -7,7 +7,7 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 lifecycleRuntimeKtx = "2.8.6"
 activityCompose = "1.9.3"
-composeBom = "2024.12.01"
+composeBom = "2025.01.01"
 appcompat = "1.6.1"
 material = "1.10.0"
 ksp = "2.0.21-1.0.28"
@@ -20,6 +20,7 @@ room = "2.6.1"
 jetbrainsKotlinJvm = "2.0.0"
 ktxDatetime = "0.6.1"
 buildconfig = "5.5.1"
+paging = "3.3.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -71,6 +72,10 @@ coil-network-ktor3 = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", 
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+
+# paging
+paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
+paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -136,4 +141,9 @@ room = [
     "room-runtime",
     "room-compiler",
     "room-ktx",
+]
+
+paging = [
+    "paging-runtime",
+    "paging-compose",
 ]

@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "tech.bnuuy.anigiri.feature.home"
+    namespace = "tech.bnuuy.anigiri.feature.search"
     compileSdk = 34
 
     defaultConfig {
@@ -14,6 +14,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
+
+        buildConfigField("String", "ANILIBRIA_BASE_URL", "\"https://anilibria.top/api/v1/\"")
+        buildConfigField("String", "ANILIBRIA_STORAGE_BASE_URL", "\"https://anilibria.top\"")
     }
 
     buildTypes {
@@ -40,17 +43,15 @@ android {
 
 dependencies {
     implementation(project(":core:designsystem"))
-    implementation(project(":core:network"))
     implementation(project(":core:nav"))
-    implementation(project(":feature:home:api"))
+    implementation(project(":feature:search:api"))
 
     implementation(libs.bundles.koin)
     implementation(libs.bundles.voyager)
     implementation(libs.bundles.orbit)
-    implementation(libs.bundles.ktor)
     implementation(libs.bundles.coil)
-    implementation(libs.kotlinx.datetime)
-    
+    implementation(libs.bundles.paging)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

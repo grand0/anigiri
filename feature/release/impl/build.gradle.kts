@@ -14,9 +14,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-        
-        buildConfigField("String", "ANILIBRIA_BASE_URL", "\"https://anilibria.top/api/v1/\"")
-        buildConfigField("String", "ANILIBRIA_STORAGE_BASE_URL", "\"https://anilibria.top\"")
     }
 
     buildTypes {

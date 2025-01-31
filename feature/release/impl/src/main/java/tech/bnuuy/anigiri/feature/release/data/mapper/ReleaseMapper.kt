@@ -1,10 +1,7 @@
 package tech.bnuuy.anigiri.feature.release.data.mapper
 
-import io.ktor.http.URLBuilder
-import io.ktor.http.appendPathSegments
-import io.ktor.http.parseUrl
 import tech.bnuuy.anigiri.core.network.datasource.response.ReleaseResponse
-import tech.bnuuy.anigiri.feature.release.BuildConfig
+import tech.bnuuy.anigiri.core.network.util.buildStorageUrl
 import tech.bnuuy.anigiri.feature.release.api.data.model.Genre
 import tech.bnuuy.anigiri.feature.release.api.data.model.Release
 
@@ -13,16 +10,8 @@ internal fun List<ReleaseResponse>.mapList(): List<Release> = map {
 }
 
 internal fun ReleaseResponse.toDomain(): Release {
-    val srcUrl = posters.srcUrl?.let {
-        URLBuilder(parseUrl(BuildConfig.ANILIBRIA_STORAGE_BASE_URL)!!)
-            .appendPathSegments(it)
-            .toString()
-    }
-    val thumbUrl = posters.thumbnailUrl?.let {
-        URLBuilder(parseUrl(BuildConfig.ANILIBRIA_STORAGE_BASE_URL)!!)
-            .appendPathSegments(it)
-            .toString()
-    }
+    val srcUrl = posters.srcUrl?.let { buildStorageUrl(it) }
+    val thumbUrl = posters.thumbnailUrl?.let { buildStorageUrl(it) }
 
     return Release(
         id = id,

@@ -19,6 +19,7 @@ import tech.bnuuy.anigiri.feature.home.BuildConfig
 import tech.bnuuy.anigiri.feature.home.di.homeModule
 import tech.bnuuy.anigiri.feature.home.presentation.ui.HomeScreen
 import tech.bnuuy.anigiri.feature.release.di.releaseModule
+import tech.bnuuy.anigiri.feature.search.di.searchModule
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,6 +31,7 @@ class MainActivity : ComponentActivity() {
                     networkModule,
                     homeModule,
                     releaseModule,
+                    searchModule,
                 )
             }) {
                 setSingletonImageLoaderFactory {
