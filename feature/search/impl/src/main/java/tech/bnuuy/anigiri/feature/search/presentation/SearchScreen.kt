@@ -2,19 +2,19 @@ package tech.bnuuy.anigiri.feature.search.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
-import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imeNestedScroll
@@ -24,25 +24,27 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,12 +52,10 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
@@ -63,7 +63,6 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import cafe.adriel.voyager.core.annotation.ExperimentalVoyagerApi
-import cafe.adriel.voyager.core.lifecycle.LifecycleEffectOnce
 import cafe.adriel.voyager.core.registry.ScreenRegistry
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -73,12 +72,14 @@ import coil3.compose.rememberAsyncImagePainter
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
 import tech.bnuuy.anigiri.core.designsystem.component.PosterListItem
+import tech.bnuuy.anigiri.core.designsystem.theme.Typography
 import tech.bnuuy.anigiri.core.nav.Routes
+import tech.bnuuy.anigiri.feature.search.R
 import tech.bnuuy.anigiri.feature.search.api.data.model.Release
 
 class SearchScreen : Screen {
     
-    @OptIn(ExperimentalLayoutApi::class)
+    @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
         val nav = LocalNavigator.currentOrThrow
@@ -87,12 +88,18 @@ class SearchScreen : Screen {
         val state by vm.collectAsState()
         val results = vm.pagingDataFlow.collectAsLazyPagingItems()
         
+        var showFilters by remember { mutableStateOf(false) }
+        val filtersSheetState = rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+        
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
                 AppBar(
                     state.query,
                     onSearch = { vm.dispatch(SearchAction.Search(it)) },
+                    onFiltersClick = { showFilters = true },
                 )
             },
         ) { innerPadding ->
@@ -111,6 +118,21 @@ class SearchScreen : Screen {
                 contentPadding = correctedPadding,
             )
         }
+        
+        if (showFilters) {
+            ModalBottomSheet(
+                onDismissRequest = { showFilters = false },
+                sheetState = filtersSheetState,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                ) {
+                    Text("Filters", style = Typography.titleLarge)
+                }
+            }
+        }
     }
     
     @OptIn(ExperimentalVoyagerApi::class)
@@ -118,6 +140,7 @@ class SearchScreen : Screen {
     private fun AppBar(
         query: String,
         onSearch: (String) -> Unit,
+        onFiltersClick: () -> Unit,
     ) {
         val gradient = Brush.verticalGradient(
             colors = listOf(
@@ -137,37 +160,32 @@ class SearchScreen : Screen {
                 .height(64.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
+            SearchTextField(
+                query = query,
+                onValueChange = onSearch,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
+                    .safeDrawingPadding()
+                    .focusRequester(focusRequester),
+            )
+            Spacer(Modifier.width(gapSize))
             Box(
                 Modifier
                     .fillMaxHeight()
+                    .aspectRatio(1f, matchHeightConstraintsFirst = true)
                     .background(
                         MaterialTheme.colorScheme.surfaceContainer,
                         shape = RoundedCornerShape(8.dp),
                     )
                     .clip(RoundedCornerShape(8.dp))
+                    .clickable(onClick = onFiltersClick),
             ) {
-                Row(
-                    Modifier
-                        .padding(vertical = 8.dp, horizontal = 16.dp)
-                        .align(Alignment.Center),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = null,
-                    )
-                    Spacer(Modifier.width(16.dp))
-                    SearchTextField(
-                        query,
-                        onValueChange = onSearch,
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .weight(1f)
-                            .safeDrawingPadding()
-                            .focusRequester(focusRequester),
-                        singleLine = true,
-                    )
-                }
+                Icon(
+                    Icons.Default.FilterList,
+                    contentDescription = null,
+                    modifier = Modifier.align(Alignment.Center),
+                )
             }
         }
         LaunchedEffect(Unit) {
@@ -175,72 +193,55 @@ class SearchScreen : Screen {
         }
     }
     
-    // TODO: rewrite to standard TextField
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun SearchTextField(
-        value: String,
-        onValueChange: (String) -> Unit,
+    fun SearchTextField(
+        query: String,
         modifier: Modifier = Modifier,
-        enabled: Boolean = true,
-        singleLine: Boolean = false,
-        visualTransformation: VisualTransformation = VisualTransformation.None,
-        textStyle: TextStyle = LocalTextStyle.current,
-        colors: TextFieldColors = TextFieldDefaults.colors(
-            focusedContainerColor = Color.Transparent,
-            unfocusedContainerColor = Color.Transparent,
-            disabledContainerColor = Color.Transparent,
-            errorContainerColor = Color.Transparent,
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            errorIndicatorColor = Color.Transparent,
-        )
+        onValueChange: (String) -> Unit
     ) {
-        var textFieldValueState by remember {
+        var fieldValue by remember {
             mutableStateOf(
                 TextFieldValue(
-                    text = value,
-                    selection = TextRange(value.length)
+                    query,
+                    selection = TextRange(query.length),
                 )
             )
         }
-        val interactionSource = remember { MutableInteractionSource() }
-        val textColor =
-            textStyle.color.takeOrElse {
-                val focused = interactionSource.collectIsFocusedAsState().value
-                when {
-                    !enabled -> colors.disabledTextColor
-                    focused -> colors.focusedTextColor
-                    else -> colors.unfocusedTextColor
-                }
-            }
-        val mergedTextStyle = textStyle.merge(TextStyle(color = textColor))
-        BasicTextField(
-            value = textFieldValueState,
+
+        TextField(
+            value = fieldValue,
             onValueChange = {
-                textFieldValueState = it
+                fieldValue = it
                 onValueChange(it.text)
             },
-            modifier = modifier,
-            visualTransformation = visualTransformation,
-            interactionSource = interactionSource,
-            enabled = enabled,
-            singleLine = singleLine,
-            textStyle = mergedTextStyle,
-            cursorBrush = SolidColor(colors.cursorColor),
-        ) { innerTextField ->
-            TextFieldDefaults.DecorationBox(
-                value = value,
-                visualTransformation = visualTransformation,
-                innerTextField = innerTextField,
-                singleLine = singleLine,
-                enabled = enabled,
-                interactionSource = interactionSource,
-                colors = colors,
-                contentPadding = PaddingValues(0.dp),
-            )
-        }
+            modifier = modifier
+                .fillMaxWidth(),
+            leadingIcon = {
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.padding(start = 8.dp),
+                )
+            },
+            placeholder = {
+                Text(stringResource(R.string.search))
+            },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                errorContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                disabledIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent,
+            ),
+            shape = RoundedCornerShape(8.dp),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        )
     }
     
     @OptIn(ExperimentalLayoutApi::class)

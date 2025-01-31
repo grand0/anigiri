@@ -44,10 +44,14 @@ internal class SearchViewModel(
         }
     }
 
-    fun search(query: String) = intent {
+    private fun search(query: String) = intent {
         reduce { 
             state.copy(query = query)
         }
         currentQuery.value = query
+    }
+    
+    private fun loadFilters() = intent {
+        
     }
 }
