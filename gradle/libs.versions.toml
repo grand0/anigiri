@@ -21,6 +21,7 @@ jetbrainsKotlinJvm = "2.0.0"
 ktxDatetime = "0.6.1"
 buildconfig = "5.5.1"
 paging = "3.3.5"
+brotli = "0.1.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -63,6 +64,7 @@ ktor-client-content-negotiation = { group = "io.ktor", name = "ktor-client-conte
 ktor-serialization-kotlinx-json = { group = "io.ktor", name = "ktor-serialization-kotlinx-json", version.ref = "ktor3" }
 ktor-client-resources = { group = "io.ktor", name = "ktor-client-resources", version.ref = "ktor3" }
 ktor-client-logging = { group = "io.ktor", name = "ktor-client-logging", version.ref = "ktor3" }
+ktor-client-encoding = { group = "io.ktor", name = "ktor-client-encoding", version.ref = "ktor3" }
 
 # coil
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil3" }
@@ -76,6 +78,9 @@ room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 # paging
 paging-runtime = { group = "androidx.paging", name = "paging-runtime", version.ref = "paging" }
 paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
+
+# brotli decoding
+brotli-dec = { group = "org.brotli", name = "dec", version.ref = "brotli" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -130,6 +135,7 @@ ktor = [
     "ktor-serialization-kotlinx-json",
     "ktor-client-resources",
     "ktor-client-logging",
+    "ktor-client-encoding",
 ]
 
 coil = [

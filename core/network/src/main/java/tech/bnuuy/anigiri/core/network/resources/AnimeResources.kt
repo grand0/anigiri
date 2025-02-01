@@ -23,5 +23,15 @@ class Anime() {
         
         @Resource("releases")
         class Releases(val parent: Catalog = Catalog())
+        
+        @Resource("references")
+        class References(val parent: Catalog = Catalog()) {
+            
+            @Resource("genres")
+            class Genres(val parent: References = References())
+            
+            @Resource("years")
+            class Years(val parent: References = References())
+        }
     }
 }

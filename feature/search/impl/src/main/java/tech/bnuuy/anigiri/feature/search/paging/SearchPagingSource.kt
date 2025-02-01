@@ -2,13 +2,16 @@ package tech.bnuuy.anigiri.feature.search.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import tech.bnuuy.anigiri.feature.search.api.data.model.CatalogSearchFilter
+import tech.bnuuy.anigiri.feature.search.api.data.model.PagedContent
 import tech.bnuuy.anigiri.feature.search.api.data.model.Release
 import tech.bnuuy.anigiri.feature.search.api.usecase.SearchCatalogUseCase
+import tech.bnuuy.anigiri.feature.search.data.mapper.toDomain
+import tech.bnuuy.anigiri.feature.search.data.model.CatalogSearchUiFilter
 
 class SearchPagingSource(
     private val searchCatalogUseCase: SearchCatalogUseCase,
-    private val filter: CatalogSearchFilter,
+    private val filter: CatalogSearchUiFilter,
+    private val onPageReceived: (PagedContent<Release>) -> Unit,
 ) : PagingSource<Int, Release>() {
     
     override fun getRefreshKey(state: PagingState<Int, Release>): Int? {
@@ -21,9 +24,12 @@ class SearchPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Release> {
         try {
             val page = params.key ?: 1
-            val resp = searchCatalogUseCase(filter.copy(
-                page = page,
-            ))
+            val resp = searchCatalogUseCase(
+                filter.copy(
+                    page = page,
+                ).toDomain()
+            )
+            onPageReceived(resp)
             return LoadResult.Page(
                 data = resp.data,
                 prevKey = if (page <= 1) null else page - 1,

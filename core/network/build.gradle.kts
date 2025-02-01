@@ -15,4 +15,5 @@ dependencies {
     implementation(libs.bundles.ktor)
     implementation(libs.koin.core)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.brotli.dec)
 }

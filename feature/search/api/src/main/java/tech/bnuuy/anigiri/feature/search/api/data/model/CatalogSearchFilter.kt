@@ -11,6 +11,6 @@ data class CatalogSearchFilter(
     val search: String? = null,
     val sorting: String? = null,
     val ageRatings: List<String>? = null,
-    val publishStatuses: String? = null,
-    val productionStatuses: String? = null,
+    val publishStatus: String? = null,
+    val productionStatus: String? = null,
 )

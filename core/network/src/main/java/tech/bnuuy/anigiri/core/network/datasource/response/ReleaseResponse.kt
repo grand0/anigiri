@@ -28,7 +28,7 @@ data class ReleaseResponse(
     @SerialName("added_in_users_favorites")
     val favorites: Int,
     @SerialName("genres")
-    val genres: List<ReleaseGenreResponse>?,
+    val genres: List<GenreResponse>?,
     @SerialName("members")
     val members: List<ReleaseMemberResponse>?,
     
@@ -58,14 +58,6 @@ data class ReleaseResponse(
     data class ReleaseAgeRatingResponse(
         @SerialName("label")
         val label: String,
-    )
-
-    @Serializable
-    data class ReleaseGenreResponse(
-        @SerialName("id")
-        val id: Int,
-        @SerialName("name")
-        val name: String,
     )
 
     @Serializable

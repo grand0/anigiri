@@ -3,10 +3,10 @@ package tech.bnuuy.anigiri.core.network.di
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.logging.ANDROID
-import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
@@ -17,6 +17,7 @@ import org.koin.core.module.dsl.factoryOf
 import org.koin.dsl.module
 import tech.bnuuy.anigiri.core.network.BuildConfig
 import tech.bnuuy.anigiri.core.network.datasource.AnimeDataSource
+import tech.bnuuy.anigiri.core.network.encoder.brotli
 
 val networkModule = module {
     single<HttpClient> {
@@ -30,6 +31,9 @@ val networkModule = module {
             }
             install(Resources)
             install(DefaultRequest)
+            install(ContentEncoding) {
+                brotli()
+            }
 
 //            if (BuildConfig.DEBUG) {
                 install(Logging) {

@@ -1,4 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="search">Поиск...</string>
+    <string name="search">Поиск…</string>
+    <string name="r0_label">0+</string>
+    <string name="r6_label">6+</string>
+    <string name="r12_label">12+</string>
+    <string name="r16_label">16+</string>
+    <string name="r18_label">18+</string>
+    <string name="in_production_label">Сейчас в озвучке</string>
+    <string name="not_in_production_label">Озвучка завершена</string>
+    <string name="ongoing_label">Онгоинг</string>
+    <string name="not_ongoing_label">Не онгоинг</string>
+    <string name="winter_label">Зима</string>
+    <string name="spring_label">Весна</string>
+    <string name="summer_label">Лето</string>
+    <string name="autumn_label">Осень</string>
+    <string name="updated_desc_label">Недавно обновлённые</string>
+    <string name="updated_asc_label">Давно обновлённые</string>
+    <string name="rating_desc_label">Самые популярные</string>
+    <string name="rating_asc_label">Самые непопулярные</string>
+    <string name="year_desc_label">Самые новые</string>
+    <string name="year_asc_label">Самые старые</string>
+    <string name="tv_label">ТВ</string>
+    <string name="ona_label">ONA</string>
+    <string name="web_label">WEB</string>
+    <string name="ova_label">OVA</string>
+    <string name="oad_label">OAD</string>
+    <string name="movie_label">Фильм</string>
+    <string name="dorama_label">Дорама</string>
+    <string name="special_label">Спешл</string>
+    <string name="clear_filters">Сбросить</string>
+    <string name="sorting">Сортировка</string>
+    <string name="genre">Жанр</string>
+    <string name="release_type">Тип</string>
+    <string name="season">Сезон</string>
+    <string name="year">Год</string>
+    <string name="age_rating">Возрастное ограничение</string>
+    <string name="publish_status">Статус релиза</string>
+    <string name="production_status">Статус озвучки</string>
+    <string name="apply_filters">Применить</string>
+    <string name="found_n_releases">Найдено %1$s релизов</string>
 </resources>

@@ -3,6 +3,7 @@ package tech.bnuuy.anigiri.core.network.datasource
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.resources.get
+import tech.bnuuy.anigiri.core.network.datasource.response.GenreResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.MetaContentResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.ReleaseResponse
 import tech.bnuuy.anigiri.core.network.resources.Anime
@@ -31,8 +32,8 @@ class AnimeDataSource(
         search: String? = null,
         sorting: String? = null,
         ageRatings: List<String>? = null,
-        publishStatuses: String? = null,
-        productionStatuses: String? = null,
+        publishStatus: String? = null,
+        productionStatus: String? = null,
     ): MetaContentResponse<ReleaseResponse> {
         return http.get(Anime.Catalog.Releases()) {
             url { 
@@ -47,10 +48,16 @@ class AnimeDataSource(
                     search?.let { append("f[search]", search) }
                     sorting?.let { append("f[sorting]", sorting) }
                     ageRatings?.let { append("f[age_ratings]", ageRatings.joinToString(",")) }
-                    publishStatuses?.let { append("f[publish_statuses]", publishStatuses) }
-                    productionStatuses?.let { append("f[production_statuses]", productionStatuses) }
+                    publishStatus?.let { append("f[publish_statuses]", publishStatus) }
+                    productionStatus?.let { append("f[production_statuses]", productionStatus) }
                 }
             }
         }.body()
     }
+    
+    suspend fun catalogGenres(): List<GenreResponse> =
+        http.get(Anime.Catalog.References.Genres()).body()
+    
+    suspend fun catalogYears(): List<Int> =
+        http.get(Anime.Catalog.References.Years()).body()
 }

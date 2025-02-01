@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -26,20 +25,21 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,6 +63,7 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import cafe.adriel.voyager.core.annotation.ExperimentalVoyagerApi
+import cafe.adriel.voyager.core.lifecycle.LifecycleEffectOnce
 import cafe.adriel.voyager.core.registry.ScreenRegistry
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -72,14 +73,14 @@ import coil3.compose.rememberAsyncImagePainter
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
 import tech.bnuuy.anigiri.core.designsystem.component.PosterListItem
-import tech.bnuuy.anigiri.core.designsystem.theme.Typography
 import tech.bnuuy.anigiri.core.nav.Routes
 import tech.bnuuy.anigiri.feature.search.R
 import tech.bnuuy.anigiri.feature.search.api.data.model.Release
+import tech.bnuuy.anigiri.feature.search.data.model.CatalogSearchUiFilter
 
 class SearchScreen : Screen {
     
-    @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalLayoutApi::class)
     @Composable
     override fun Content() {
         val nav = LocalNavigator.currentOrThrow
@@ -89,17 +90,15 @@ class SearchScreen : Screen {
         val results = vm.pagingDataFlow.collectAsLazyPagingItems()
         
         var showFilters by remember { mutableStateOf(false) }
-        val filtersSheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = true,
-        )
         
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
                 AppBar(
-                    state.query,
-                    onSearch = { vm.dispatch(SearchAction.Search(it)) },
+                    state.filter.search,
+                    onSearch = { vm.dispatch(SearchAction.Search(state.filter.copy(search = it))) },
                     onFiltersClick = { showFilters = true },
+                    showFiltersBadge = !state.filter.isDefault(minYear = state.minYear, maxYear = state.maxYear),
                 )
             },
         ) { innerPadding ->
@@ -116,31 +115,32 @@ class SearchScreen : Screen {
                 results = results,
                 onResultClick = { nav.push(ScreenRegistry.get(Routes.Release(it.id))) },
                 contentPadding = correctedPadding,
+                totalItems = state.totalItems,
             )
         }
         
         if (showFilters) {
-            ModalBottomSheet(
-                onDismissRequest = { showFilters = false },
-                sheetState = filtersSheetState,
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                ) {
-                    Text("Filters", style = Typography.titleLarge)
-                }
-            }
+            FiltersBottomSheet(
+                initialFilter = state.filter,
+                onDismiss = {
+                    showFilters = false
+                    vm.dispatch(SearchAction.Search(it))
+                },
+                allGenres = state.genres,
+                minYear = state.minYear,
+                maxYear = state.maxYear,
+                isLoading = state.filtersLoading,
+            )
         }
     }
     
     @OptIn(ExperimentalVoyagerApi::class)
     @Composable
     private fun AppBar(
-        query: String,
+        query: String?,
         onSearch: (String) -> Unit,
         onFiltersClick: () -> Unit,
+        showFiltersBadge: Boolean = false,
     ) {
         val gradient = Brush.verticalGradient(
             colors = listOf(
@@ -161,7 +161,7 @@ class SearchScreen : Screen {
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             SearchTextField(
-                query = query,
+                query = query ?: "",
                 onValueChange = onSearch,
                 modifier = Modifier
                     .fillMaxHeight()
@@ -181,14 +181,22 @@ class SearchScreen : Screen {
                     .clip(RoundedCornerShape(8.dp))
                     .clickable(onClick = onFiltersClick),
             ) {
-                Icon(
-                    Icons.Default.FilterList,
-                    contentDescription = null,
+                BadgedBox(
                     modifier = Modifier.align(Alignment.Center),
-                )
+                    badge = {
+                        if (showFiltersBadge) {
+                            Badge()
+                        }
+                    },
+                ) {
+                    Icon(
+                        Icons.Default.FilterList,
+                        contentDescription = null,
+                    )
+                }
             }
         }
-        LaunchedEffect(Unit) {
+        LifecycleEffectOnce {
             focusRequester.requestFocus()
         }
     }
@@ -221,9 +229,24 @@ class SearchScreen : Screen {
                 Icon(
                     Icons.Default.Search,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.padding(start = 8.dp),
                 )
+            },
+            trailingIcon = {
+                if (fieldValue.text.isNotEmpty()) {
+                    IconButton(
+                        onClick = {
+                            fieldValue = TextFieldValue("")
+                            onValueChange("")
+                        },
+                        modifier = Modifier.padding(end = 8.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = null,
+                        )
+                    }
+                }
             },
             placeholder = {
                 Text(stringResource(R.string.search))
@@ -248,6 +271,7 @@ class SearchScreen : Screen {
     @Composable
     private fun ResultsList(
         results: LazyPagingItems<Release>,
+        totalItems: Int,
         onResultClick: (Release) -> Unit,
         contentPadding: PaddingValues,
     ) {
@@ -269,15 +293,20 @@ class SearchScreen : Screen {
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .imeNestedScroll()
                 .imePadding(),
             contentPadding = contentPadding,
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             item {
+                Text(
+                    stringResource(R.string.found_n_releases, totalItems),
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+            }
+            
+            item {
                 if (results.loadState.prepend is LoadState.Loading) {
-                    CircularProgressIndicator()
-                } else if (results.loadState.prepend is LoadState.Error) {
-                    Text((results.loadState.prepend as LoadState.Error).error.toString())
+                    CircularProgressIndicator(Modifier.padding(vertical = 16.dp))
                 }
             }
             
@@ -297,16 +326,14 @@ class SearchScreen : Screen {
                         painter = posterPainter,
                         isImageLoading = painterState is AsyncImagePainter.State.Loading,
                         isImageError = painterState is AsyncImagePainter.State.Error,
-                        modifier = Modifier.clickable { onResultClick(release) },
+                        modifier = Modifier.fillMaxWidth().clickable { onResultClick(release) },
                     )
                 }
             }
             
             item {
                 if (results.loadState.append is LoadState.Loading) {
-                    CircularProgressIndicator()
-                } else if (results.loadState.append is LoadState.Error) {
-                    Text((results.loadState.append as LoadState.Error).error.toString())
+                    CircularProgressIndicator(Modifier.padding(vertical = 16.dp))
                 }
             }
         }
