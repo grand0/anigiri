@@ -2,6 +2,9 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.gms)
+    alias(libs.plugins.crashlytics)
+    alias(libs.plugins.firebase.perf)
 }
 
 android {
@@ -46,10 +49,13 @@ dependencies {
     implementation(project(":feature:home:impl"))
     implementation(project(":feature:release:impl"))
     implementation(project(":feature:search:impl"))
-
+    
     implementation(libs.bundles.voyager)
     implementation(libs.bundles.koin)
     implementation(libs.bundles.coil)
+    
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.bundles.firebase)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
