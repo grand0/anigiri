@@ -43,7 +43,8 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:nav"))
     implementation(project(":feature:home:api"))
-
+    
+    implementation(libs.androidx.core.ktx)
     implementation(libs.bundles.koin)
     implementation(libs.bundles.voyager)
     implementation(libs.bundles.orbit)

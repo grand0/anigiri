@@ -15,6 +15,7 @@ import org.koin.compose.KoinApplication
 import tech.bnuuy.anigiri.core.designsystem.theme.AnigiriTheme
 import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
 import tech.bnuuy.anigiri.core.network.di.networkModule
+import tech.bnuuy.anigiri.di.appModule
 import tech.bnuuy.anigiri.feature.home.BuildConfig
 import tech.bnuuy.anigiri.feature.home.di.homeModule
 import tech.bnuuy.anigiri.feature.home.presentation.ui.HomeScreen
@@ -28,6 +29,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             KoinApplication(application = {
                 modules(
+                    appModule,
                     networkModule,
                     homeModule,
                     releaseModule,

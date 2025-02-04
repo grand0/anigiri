@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.bundles.voyager)
     implementation(libs.bundles.koin)
     implementation(libs.bundles.coil)
+    implementation(libs.datastore.preferences)
     
     implementation(platform(libs.firebase.bom))
     implementation(libs.bundles.firebase)
