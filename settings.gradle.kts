@@ -34,4 +34,6 @@ include(":feature:release:api")
 include(":feature:release:impl")
 include(":feature:search:api")
 include(":feature:search:impl")
+include(":feature:profile:api")
+include(":feature:profile:impl")
  

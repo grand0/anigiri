@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FilterListOff
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material3.Badge
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,12 +29,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalAbsoluteTonalElevation
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RangeSlider
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -97,11 +100,13 @@ fun FiltersBottomSheet(
     
     val scope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
+
+    val surfaceColor = MaterialTheme.colorScheme.surfaceColorAtElevation(BottomSheetDefaults.Elevation)
     val gradient = Brush.verticalGradient(
         colors = listOf(
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.0f),
-            MaterialTheme.colorScheme.surface.copy(alpha = 0.75f),
-            MaterialTheme.colorScheme.surface.copy(alpha = 1.0f),
+            surfaceColor.copy(alpha = 0.0f),
+            surfaceColor.copy(alpha = 0.75f),
+            surfaceColor.copy(alpha = 1.0f),
         )
     )
 

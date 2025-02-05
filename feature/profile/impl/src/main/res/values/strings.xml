@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="id">ID: %1$s</string>
+    <string name="logout">Выйти</string>
+    <string name="login">Войти</string>
+    <string name="register">Зарегистрироваться</string>
+    <string name="login_label">Логин</string>
+    <string name="password_label">Пароль</string>
+    <string name="unnamed">Безымянный</string>
+    <string name="login_to_your_account">Войдите в аккаунт</string>
+</resources>

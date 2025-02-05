@@ -84,6 +84,7 @@ class HomeScreen : Screen {
             nav.push(ScreenRegistry.get(Routes.Release(release.id)))
         }
         val goToSearch = { nav.push(ScreenRegistry.get(Routes.Search)) }
+        val goToProfile = { nav.push(ScreenRegistry.get(Routes.Profile)) }
         
         val context = LocalContext.current
         val snackbarHostState = LocalSnackbarHostState.current
@@ -110,7 +111,9 @@ class HomeScreen : Screen {
 
         Scaffold(
             Modifier.fillMaxSize(),
-            topBar = { AppBar(goToSearch) },
+            topBar = {
+                AppBar(goToSearch, goToProfile)
+            },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { innerPadding ->
             HomeList(
@@ -128,7 +131,8 @@ class HomeScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun AppBar(
-        goToSearch: () -> Unit
+        goToSearch: () -> Unit,
+        goToProfile: () -> Unit,
     ) {
         val gradient = Brush.verticalGradient(
             colors = listOf(
@@ -186,7 +190,7 @@ class HomeScreen : Screen {
                         shape = RoundedCornerShape(8.dp),
                     )
                     .clip(RoundedCornerShape(8.dp))
-                    .clickable {},
+                    .clickable(onClick = goToProfile),
             ) {
                 Icon(
                     Icons.Default.AccountCircle,

@@ -49,6 +49,7 @@ dependencies {
     implementation(project(":feature:home:impl"))
     implementation(project(":feature:release:impl"))
     implementation(project(":feature:search:impl"))
+    implementation(project(":feature:profile:impl"))
     
     implementation(libs.bundles.voyager)
     implementation(libs.bundles.koin)

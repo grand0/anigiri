@@ -11,16 +11,16 @@ import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.resources.Resources
-import io.ktor.http.HeaderValueWithParameters
-import io.ktor.http.append
-import io.ktor.http.headers
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import org.koin.core.module.dsl.factoryOf
+import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import tech.bnuuy.anigiri.core.network.BuildConfig
+import tech.bnuuy.anigiri.core.network.datasource.AccountsDataSource
 import tech.bnuuy.anigiri.core.network.datasource.AnimeDataSource
 import tech.bnuuy.anigiri.core.network.encoder.brotli
+import tech.bnuuy.anigiri.core.network.session.AppSession
 
 val networkModule = module {
     single<HttpClient> {
@@ -51,5 +51,8 @@ val networkModule = module {
         }
     }
     
+    singleOf(::AppSession)
+    
     factoryOf(::AnimeDataSource)
+    factoryOf(::AccountsDataSource)
 }

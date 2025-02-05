@@ -17,5 +17,12 @@ class Accounts() {
             @Resource("logout")
             class Logout(val parent: Auth = Auth())
         }
+
+        @Resource("me")
+        class Me(val parent: Users = Users()) {
+
+            @Resource("profile")
+            class Profile(val parent: Me = Me())
+        }
     }
 }

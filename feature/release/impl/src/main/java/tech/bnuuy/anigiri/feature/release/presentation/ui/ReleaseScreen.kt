@@ -47,6 +47,7 @@ import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectAsState
 import tech.bnuuy.anigiri.core.designsystem.component.ExpandableCard
+import tech.bnuuy.anigiri.core.designsystem.component.Poster
 import tech.bnuuy.anigiri.core.designsystem.component.ShimmerLoader
 import tech.bnuuy.anigiri.core.designsystem.theme.Typography
 import tech.bnuuy.anigiri.feature.release.api.data.model.Release
@@ -117,6 +118,12 @@ class ReleaseScreen(val releaseId: Int) : Screen {
     
     @Composable
     private fun ReleaseInfo(release: Release, contentPadding: PaddingValues) {
+        val posterPainter = rememberAsyncImagePainter(
+            model = release.posterUrl,
+            contentScale = ContentScale.Crop,
+        )
+        val painterState by posterPainter.state.collectAsState()
+        
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize(),
@@ -124,8 +131,10 @@ class ReleaseScreen(val releaseId: Int) : Screen {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             item {
-                ReleasePoster(
-                    release,
+                Poster(
+                    painter = posterPainter,
+                    isLoading = painterState is AsyncImagePainter.State.Loading,
+                    isError = painterState is AsyncImagePainter.State.Error,
                     modifier = Modifier
                         .width(250.dp)
                         .padding(vertical = 32.dp),
