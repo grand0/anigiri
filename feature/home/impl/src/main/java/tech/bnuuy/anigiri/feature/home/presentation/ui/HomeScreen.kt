@@ -75,6 +75,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
@@ -459,6 +460,7 @@ class HomeScreen : Screen {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center).size(48.dp),
                             gapSize = 0.dp,
+                            trackColor = Color.Transparent,
                             progress = { overscrollProgressWithDifficulty },
                         )
                         IconButton(

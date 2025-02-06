@@ -12,6 +12,7 @@ import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
 import org.koin.android.ext.koin.androidContext
 import org.koin.compose.KoinApplication
+import tech.bnuuy.anigiri.core.db.di.databaseModule
 import tech.bnuuy.anigiri.core.designsystem.theme.AnigiriTheme
 import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
 import tech.bnuuy.anigiri.core.network.di.networkModule
@@ -35,6 +36,7 @@ class MainActivity : ComponentActivity() {
                 modules(
                     appModule,
                     networkModule,
+                    databaseModule,
                     homeModule,
                     releaseModule,
                     searchModule,

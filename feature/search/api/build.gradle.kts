@@ -33,7 +33,7 @@ android {
 }
 
 dependencies {
-    api(project(":core:network"))
+    implementation(libs.kotlinx.datetime)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
