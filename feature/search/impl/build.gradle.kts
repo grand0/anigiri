@@ -44,6 +44,8 @@ android {
 dependencies {
     implementation(project(":core:designsystem"))
     implementation(project(":core:nav"))
+    implementation(project(":core:network"))
+    implementation(project(":core:db"))
     implementation(project(":feature:search:api"))
 
     implementation(libs.bundles.koin)
@@ -51,6 +53,7 @@ dependencies {
     implementation(libs.bundles.orbit)
     implementation(libs.bundles.coil)
     implementation(libs.bundles.paging)
+    implementation(libs.kotlinx.datetime)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

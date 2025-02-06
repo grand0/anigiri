@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.imeNestedScroll
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -25,9 +24,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CircularProgressIndicator
@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,7 +77,6 @@ import tech.bnuuy.anigiri.core.designsystem.component.PosterListItem
 import tech.bnuuy.anigiri.core.nav.Routes
 import tech.bnuuy.anigiri.feature.search.R
 import tech.bnuuy.anigiri.feature.search.api.data.model.Release
-import tech.bnuuy.anigiri.feature.search.data.model.CatalogSearchUiFilter
 
 class SearchScreen : Screen {
     
@@ -90,6 +90,7 @@ class SearchScreen : Screen {
         val results = vm.pagingDataFlow.collectAsLazyPagingItems()
         
         var showFilters by remember { mutableStateOf(false) }
+        var showSearchHistory by remember { mutableStateOf(false) }
         
         Scaffold(
             modifier = Modifier.fillMaxSize(),
@@ -99,6 +100,8 @@ class SearchScreen : Screen {
                     onSearch = { vm.dispatch(SearchAction.Search(state.filter.copy(search = it))) },
                     onFiltersClick = { showFilters = true },
                     showFiltersBadge = !state.filter.isDefault(minYear = state.minYear, maxYear = state.maxYear),
+                    onSearchHistoryClick = { showSearchHistory = true },
+                    onBackButtonClick = { nav.pop() }
                 )
             },
         ) { innerPadding ->
@@ -132,6 +135,18 @@ class SearchScreen : Screen {
                 isLoading = state.filtersLoading,
             )
         }
+        
+        if (showSearchHistory) {
+            SearchHistoryBottomSheet(
+                queries = state.searchHistory,
+                onDismiss = { showSearchHistory = false },
+                onQueryClick = { searchQuery ->
+                    showSearchHistory = false
+                    vm.dispatch(SearchAction.Search(state.filter.copy(search = searchQuery.query)))
+                },
+                onClearClick = { vm.dispatch(SearchAction.ClearSearchHistory) }
+            )
+        }
     }
     
     @OptIn(ExperimentalVoyagerApi::class)
@@ -140,6 +155,8 @@ class SearchScreen : Screen {
         query: String?,
         onSearch: (String) -> Unit,
         onFiltersClick: () -> Unit,
+        onSearchHistoryClick: () -> Unit,
+        onBackButtonClick: () -> Unit,
         showFiltersBadge: Boolean = false,
     ) {
         val gradient = Brush.verticalGradient(
@@ -161,13 +178,15 @@ class SearchScreen : Screen {
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
             SearchTextField(
-                query = query ?: "",
-                onValueChange = onSearch,
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
                     .safeDrawingPadding()
                     .focusRequester(focusRequester),
+                query = query ?: "",
+                onValueChange = onSearch,
+                onSearchHistoryClick = onSearchHistoryClick,
+                onBackButtonClick = onBackButtonClick,
             )
             Spacer(Modifier.width(gapSize))
             Box(
@@ -206,7 +225,9 @@ class SearchScreen : Screen {
     fun SearchTextField(
         query: String,
         modifier: Modifier = Modifier,
-        onValueChange: (String) -> Unit
+        onValueChange: (String) -> Unit,
+        onSearchHistoryClick: () -> Unit,
+        onBackButtonClick: () -> Unit,
     ) {
         var fieldValue by remember {
             mutableStateOf(
@@ -215,6 +236,15 @@ class SearchScreen : Screen {
                     selection = TextRange(query.length),
                 )
             )
+        }
+
+        LaunchedEffect(query) {
+            if (fieldValue.text != query) {
+                fieldValue = TextFieldValue(
+                    query,
+                    selection = TextRange(query.length),
+                )
+            }
         }
 
         TextField(
@@ -226,11 +256,15 @@ class SearchScreen : Screen {
             modifier = modifier
                 .fillMaxWidth(),
             leadingIcon = {
-                Icon(
-                    Icons.Default.Search,
-                    contentDescription = null,
-                    modifier = Modifier.padding(start = 8.dp),
-                )
+                IconButton(
+                    onClick = onBackButtonClick,
+                    modifier = Modifier.padding(start = 4.dp),
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Default.ArrowBack,
+                        contentDescription = null,
+                    )
+                }
             },
             trailingIcon = {
                 if (fieldValue.text.isNotEmpty()) {
@@ -243,6 +277,16 @@ class SearchScreen : Screen {
                     ) {
                         Icon(
                             Icons.Default.Close,
+                            contentDescription = null,
+                        )
+                    }
+                } else {
+                    IconButton(
+                        onClick = { onSearchHistoryClick() },
+                        modifier = Modifier.padding(end = 8.dp),
+                    ) {
+                        Icon(
+                            Icons.Default.History,
                             contentDescription = null,
                         )
                     }

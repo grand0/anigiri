@@ -39,4 +39,6 @@
     <string name="production_status">Статус озвучки</string>
     <string name="apply_filters">Применить</string>
     <string name="found_n_releases">Найдено %1$s релизов</string>
+    <string name="history">История</string>
+    <string name="history_is_empty">История запросов пуста</string>
 </resources>

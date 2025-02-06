@@ -163,7 +163,6 @@ coil = [
 
 room = [
     "room-runtime",
-    "room-compiler",
     "room-ktx",
 ]
 
