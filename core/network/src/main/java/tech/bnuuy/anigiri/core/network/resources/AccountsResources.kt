@@ -23,6 +23,13 @@ class Accounts() {
 
             @Resource("profile")
             class Profile(val parent: Me = Me())
+            
+            @Resource("favorites")
+            class Favorites(val parent: Me = Me()) {
+                
+                @Resource("releases")
+                class Releases(val parent: Favorites = Favorites())
+            }
         }
     }
 }

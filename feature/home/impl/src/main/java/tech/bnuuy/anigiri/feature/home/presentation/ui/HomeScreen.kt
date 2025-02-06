@@ -1,9 +1,19 @@
 package tech.bnuuy.anigiri.feature.home.presentation.ui
 
 import android.text.format.DateUtils
+import android.util.Log
+import android.view.HapticFeedbackConstants
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalOverscrollConfiguration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.interaction.DragInteraction
+import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,15 +25,24 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowRight
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Image
@@ -31,6 +50,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -40,18 +60,32 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.registry.ScreenRegistry
 import cafe.adriel.voyager.core.registry.rememberScreen
@@ -60,6 +94,8 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
@@ -74,6 +110,8 @@ import tech.bnuuy.anigiri.feature.home.R
 import tech.bnuuy.anigiri.feature.home.presentation.HomeViewModel
 import tech.bnuuy.anigiri.feature.home.presentation.model.HomeAction
 import tech.bnuuy.anigiri.feature.home.presentation.model.HomeSideEffect
+import kotlin.math.roundToInt
+import kotlin.toString
 
 class HomeScreen : Screen {
 
@@ -112,18 +150,24 @@ class HomeScreen : Screen {
         Scaffold(
             Modifier.fillMaxSize(),
             topBar = {
-                AppBar(goToSearch, goToProfile)
+                AppBar(
+                    avatarUrl = state.profileAvatarUrl,
+                    goToSearch = goToSearch,
+                    goToProfile = goToProfile,
+                )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { innerPadding ->
             HomeList(
                 latestReleases = state.latestReleases,
-                isLoading = state.isLoading,
+                favoriteReleases = state.favoriteReleases,
+                isLoading = state.homeScreenLoading,
                 onRefresh = { vm.dispatch(HomeAction.Refresh) },
                 contentPadding = innerPadding,
-                error = state.error,
+                error = state.latestReleasesError,
                 onRandomClick = { vm.dispatch(HomeAction.FetchRandomRelease) },
                 isRandomLoading = state.isRandomReleaseLoading,
+                goToFavorites = { nav.push(ScreenRegistry.get(Routes.Favorites)) },
             )
         }
     }
@@ -131,8 +175,9 @@ class HomeScreen : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun AppBar(
-        goToSearch: () -> Unit,
-        goToProfile: () -> Unit,
+        avatarUrl: String? = null,
+        goToSearch: () -> Unit = {},
+        goToProfile: () -> Unit = {},
     ) {
         val gradient = Brush.verticalGradient(
             colors = listOf(
@@ -191,12 +236,25 @@ class HomeScreen : Screen {
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable(onClick = goToProfile),
+                contentAlignment = Alignment.Center,
             ) {
-                Icon(
-                    Icons.Default.AccountCircle,
-                    contentDescription = null,
-                    modifier = Modifier.align(Alignment.Center),
+                val avatarPainter = rememberAsyncImagePainter(
+                    model = avatarUrl,
                 )
+                val avatarPainterState by avatarPainter.state.collectAsState()
+                
+                if (avatarPainterState is AsyncImagePainter.State.Success) {
+                    Image(
+                        avatarPainter,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp).clip(CircleShape),
+                    )
+                } else {
+                    Icon(
+                        Icons.Default.AccountCircle,
+                        contentDescription = null,
+                    )
+                }
             }
         }
     }
@@ -205,11 +263,13 @@ class HomeScreen : Screen {
     @Composable
     private fun HomeList(
         latestReleases: List<Release>,
+        favoriteReleases: List<Release>,
         isLoading: Boolean,
         onRefresh: () -> Unit,
         error: Throwable? = null,
         isRandomLoading: Boolean,
         onRandomClick: () -> Unit,
+        goToFavorites: () -> Unit,
         contentPadding: PaddingValues = PaddingValues(0.dp),
     ) {
         val pullToRefreshState = rememberPullToRefreshState()
@@ -245,7 +305,16 @@ class HomeScreen : Screen {
             ) {
                 if (latestReleases.isNotEmpty()) {
                     item {
-                        LatestReleases(latestReleases)
+                        LatestReleasesList(latestReleases)
+                    }
+                }
+
+                if (favoriteReleases.isNotEmpty()) {
+                    item {
+                        FavoriteReleasesList(
+                            releases = favoriteReleases,
+                            goToFavorites = goToFavorites,
+                        )
                     }
                 }
                 
@@ -293,45 +362,158 @@ class HomeScreen : Screen {
             }
         }
     }
+    
+    @Composable
+    private fun LatestReleasesList(releases: List<Release>) {
+        ReleasesHorizontalList(
+            releases = releases,
+            listTitle = {
+                Text(
+                    stringResource(R.string.new_episodes),
+                    style = Typography.titleLarge,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                )
+            },
+            releaseLabel = { release ->
+                release.latestEpisodePublishTime?.let {
+                    val relativeDate = DateUtils.getRelativeTimeSpanString(it.toEpochMilliseconds())
+                    Text(
+                        relativeDate.toString(),
+                        textAlign = TextAlign.Center,
+                        style = Typography.labelMedium,
+                    )
+                }
+            },
+            contentPadding = PaddingValues(12.dp),
+        )
+    }
+
+    @OptIn(ExperimentalFoundationApi::class)
+    @Composable
+    private fun FavoriteReleasesList(
+        releases: List<Release>,
+        goToFavorites: () -> Unit,
+    ) {
+        val overscrollThreshold = 100.dp
+        
+        val view = LocalView.current
+        val listState = rememberLazyListState()
+        val difficulty = remember { Animatable(1f) }
+        val overscrollThresholdPx = with (LocalDensity.current) { overscrollThreshold.toPx() }
+        var overscrollAmount by remember { mutableFloatStateOf(0f) }
+        val overscrollProgress = (overscrollAmount / overscrollThresholdPx).coerceIn(0f, 1f)
+        val overscrollProgressWithDifficulty = overscrollProgress * difficulty.value
+        var overscrollTriggered by remember { mutableStateOf(false) }
+
+        LaunchedEffect(listState) {
+            listState.interactionSource.interactions
+                .distinctUntilChanged()
+                .collect { interaction ->
+                    when(interaction) {
+                        is DragInteraction.Start -> {
+                            difficulty.animateTo(1f, animationSpec = tween(50))
+                        }
+                        else -> {
+                            difficulty.animateTo(0.25f, animationSpec = tween(50))
+                        }
+                    }
+                }
+        }
+        
+        if (overscrollProgressWithDifficulty == 1f && !overscrollTriggered) {
+            overscrollTriggered = true
+            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+            goToFavorites()
+        } else if (overscrollProgressWithDifficulty != 1f) {
+            overscrollTriggered = false
+        }
+
+        CompositionLocalProvider(
+            LocalOverscrollConfiguration provides null,
+        ) {
+            ReleasesHorizontalList(
+                modifier = Modifier
+                    .customOverscroll(
+                        orientation = Orientation.Horizontal,
+                        onNewOverscrollAmount = {
+                            overscrollAmount = -it
+                        },
+                    )
+                    .offset {
+                        IntOffset(
+                            x = -overscrollAmount.roundToInt().coerceAtLeast(0),
+                            y = 0,
+                        )
+                    },
+                releases = releases,
+                listTitle = {
+                    Text(
+                        stringResource(R.string.favorites),
+                        style = Typography.titleLarge,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    )
+                },
+                contentPadding = PaddingValues(start = 12.dp, end = 12.dp + overscrollThreshold * overscrollProgress),
+                suffix = {
+                    Box(Modifier.padding(horizontal = 16.dp)) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center).size(48.dp),
+                            gapSize = 0.dp,
+                            progress = { overscrollProgressWithDifficulty },
+                        )
+                        IconButton(
+                            modifier = Modifier.align(Alignment.Center).size(48.dp),
+                            onClick = { goToFavorites() },
+                        ) {
+                            Icon(Icons.AutoMirrored.Default.ArrowForward, contentDescription = null)
+                        }
+                    }
+                },
+                state = listState,
+            )
+        }
+    }
 
     @Composable
-    private fun LatestReleases(releases: List<Release>) {
+    private fun ReleasesHorizontalList(
+        modifier: Modifier = Modifier,
+        releases: List<Release>,
+        listTitle: @Composable () -> Unit = {},
+        releaseLabel: @Composable (Release) -> Unit = {},
+        suffix: @Composable (LazyItemScope.() -> Unit) = {},
+        state: LazyListState = rememberLazyListState(),
+        contentPadding: PaddingValues = PaddingValues(0.dp),
+    ) {
         val nav = LocalNavigator.currentOrThrow
 
-        Text(
-            stringResource(R.string.new_episodes),
-            style = Typography.titleLarge,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-        )
+        listTitle()
 
-        LazyRow(
-            contentPadding = PaddingValues(horizontal = 12.dp),
-        ) {
-            items(releases) { release ->
-                val releaseScreen = rememberScreen(Routes.Release(release.id))
+        Box(modifier) {
+            LazyRow(
+                contentPadding = contentPadding,
+                state = state,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                items(releases) { release ->
+                    val releaseScreen = rememberScreen(Routes.Release(release.id))
 
-                val relativeDate = release.latestEpisodePublishTime?.let {
-                    DateUtils.getRelativeTimeSpanString(it.toEpochMilliseconds())
-                }
-
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .clickable {
-                            nav.push(releaseScreen)
-                        }
-                        .padding(8.dp)
-                ) {
-                    ReleasePoster(release)
-                    Spacer(Modifier.height(8.dp))
-                    relativeDate?.let {
-                        Text(
-                            it.toString(),
-                            textAlign = TextAlign.Center,
-                            style = Typography.labelMedium,
-                        )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable {
+                                nav.push(releaseScreen)
+                            }
+                            .padding(8.dp)
+                    ) {
+                        ReleasePoster(release)
+                        Spacer(Modifier.height(8.dp))
+                        releaseLabel(release)
                     }
+                }
+                
+                item {
+                    suffix()
                 }
             }
         }

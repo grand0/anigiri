@@ -46,6 +46,10 @@ class AppSession(
         }
     }
     
+    suspend fun checkAuthorized(): Boolean {
+        return getAuthorizedUser() != null
+    }
+    
     suspend fun getAuthToken(): String? {
         return dataStore.data.first()[stringPreferencesKey(ANIGIRI_AUTH_TOKEN_KEY)]
     }

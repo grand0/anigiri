@@ -51,7 +51,7 @@ dependencies {
     implementation(libs.bundles.ktor)
     implementation(libs.bundles.coil)
     implementation(libs.kotlinx.datetime)
-    
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

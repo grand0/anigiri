@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="n_favorite_releases">В избранном %1$s релизов</string>
+    <string name="favorites">Избранное</string>
+</resources>

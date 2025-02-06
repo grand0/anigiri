@@ -50,6 +50,7 @@ dependencies {
     implementation(project(":feature:release:impl"))
     implementation(project(":feature:search:impl"))
     implementation(project(":feature:profile:impl"))
+    implementation(project(":feature:favorites:impl"))
     
     implementation(libs.bundles.voyager)
     implementation(libs.bundles.koin)

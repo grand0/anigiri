@@ -7,4 +7,5 @@ sealed class Routes : ScreenProvider {
     data class Release(val releaseId: Int) : Routes()
     object Search : Routes()
     object Profile : Routes()
+    object Favorites : Routes()
 }
