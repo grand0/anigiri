@@ -5,7 +5,7 @@ import tech.bnuuy.anigiri.core.network.datasource.response.ReleaseResponse
 import tech.bnuuy.anigiri.core.network.util.buildStorageUrl
 import tech.bnuuy.anigiri.feature.home.api.data.model.Release
 
-internal fun List<ReleaseResponse>.listToDomain(): List<Release> = map {
+internal fun List<ReleaseResponse>.mapToDomain(): List<Release> = map {
     it.toDomain()
 }
 

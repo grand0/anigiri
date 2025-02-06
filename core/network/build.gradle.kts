@@ -16,4 +16,5 @@ dependencies {
     implementation(libs.koin.core)
     implementation(libs.kotlinx.datetime)
     implementation(libs.brotli.dec)
+    implementation(libs.datastore.preferences.core)
 }

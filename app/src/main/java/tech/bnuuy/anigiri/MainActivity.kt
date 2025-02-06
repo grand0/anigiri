@@ -10,16 +10,20 @@ import androidx.compose.runtime.remember
 import cafe.adriel.voyager.navigator.Navigator
 import coil3.ImageLoader
 import coil3.compose.setSingletonImageLoaderFactory
-import coil3.util.DebugLogger
+import org.koin.android.ext.koin.androidContext
 import org.koin.compose.KoinApplication
 import tech.bnuuy.anigiri.core.designsystem.theme.AnigiriTheme
 import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
 import tech.bnuuy.anigiri.core.network.di.networkModule
+import tech.bnuuy.anigiri.di.appModule
+import tech.bnuuy.anigiri.feature.favorites.di.favoritesModule
 import tech.bnuuy.anigiri.feature.home.BuildConfig
 import tech.bnuuy.anigiri.feature.home.di.homeModule
 import tech.bnuuy.anigiri.feature.home.presentation.ui.HomeScreen
+import tech.bnuuy.anigiri.feature.profile.di.profileModule
 import tech.bnuuy.anigiri.feature.release.di.releaseModule
 import tech.bnuuy.anigiri.feature.search.di.searchModule
+import tech.bnuuy.anigiri.util.DebugLogger
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,11 +31,15 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             KoinApplication(application = {
+                androidContext(this@MainActivity)
                 modules(
+                    appModule,
                     networkModule,
                     homeModule,
                     releaseModule,
                     searchModule,
+                    profileModule,
+                    favoritesModule,
                 )
             }) {
                 setSingletonImageLoaderFactory {

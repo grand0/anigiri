@@ -43,14 +43,15 @@ dependencies {
     implementation(project(":core:network"))
     implementation(project(":core:nav"))
     implementation(project(":feature:home:api"))
-
+    
+    implementation(libs.androidx.core.ktx)
     implementation(libs.bundles.koin)
     implementation(libs.bundles.voyager)
     implementation(libs.bundles.orbit)
     implementation(libs.bundles.ktor)
     implementation(libs.bundles.coil)
     implementation(libs.kotlinx.datetime)
-    
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
