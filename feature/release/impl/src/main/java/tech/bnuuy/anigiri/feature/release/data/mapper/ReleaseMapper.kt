@@ -1,13 +1,10 @@
 package tech.bnuuy.anigiri.feature.release.data.mapper
 
+import tech.bnuuy.anigiri.core.network.datasource.request.ReleaseId
 import tech.bnuuy.anigiri.core.network.datasource.response.ReleaseResponse
 import tech.bnuuy.anigiri.core.network.util.buildStorageUrl
 import tech.bnuuy.anigiri.feature.release.api.data.model.Genre
 import tech.bnuuy.anigiri.feature.release.api.data.model.Release
-
-internal fun List<ReleaseResponse>.mapList(): List<Release> = map {
-    it.toDomain()
-}
 
 internal fun ReleaseResponse.toDomain(): Release {
     val srcUrl = posters.srcUrl?.let { buildStorageUrl(it) }
@@ -26,6 +23,7 @@ internal fun ReleaseResponse.toDomain(): Release {
         description = description,
         episodesTotal = episodesTotal,
         episodeDurationMinutes = episodeDurationMinutes,
+        favorites = favorites,
         genres = genres?.map { Genre(id = it.id, name = it.name) },
         members = members?.groupBy(
             keySelector = { it.role.name },
@@ -33,4 +31,8 @@ internal fun ReleaseResponse.toDomain(): Release {
         ),
         episodes = episodes?.mapList(),
     )
+}
+
+internal fun Release.toId(): ReleaseId {
+    return ReleaseId(releaseId = id)
 }

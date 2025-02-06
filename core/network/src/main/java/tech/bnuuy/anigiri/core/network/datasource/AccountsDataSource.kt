@@ -2,24 +2,28 @@ package tech.bnuuy.anigiri.core.network.datasource
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.resources.get
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
+import tech.bnuuy.anigiri.core.network.cache.FavoritesMemoryCache
 import tech.bnuuy.anigiri.core.network.datasource.request.AuthRequest
+import tech.bnuuy.anigiri.core.network.datasource.request.ReleaseId
 import tech.bnuuy.anigiri.core.network.datasource.response.MetaContentResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.ProfileResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.ReleaseResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.TokenResponse
+import tech.bnuuy.anigiri.core.network.encoder.ignoringBrotli
 import tech.bnuuy.anigiri.core.network.resources.Accounts
-import tech.bnuuy.anigiri.core.network.resources.Anime
-import tech.bnuuy.anigiri.core.network.session.AppSession
+import tech.bnuuy.anigiri.core.network.util.deleteAuthenticated
 import tech.bnuuy.anigiri.core.network.util.getAuthenticated
 import tech.bnuuy.anigiri.core.network.util.postAuthenticated
 
 class AccountsDataSource(
     private val http: HttpClient,
+    private val favoritesMemoryCache: FavoritesMemoryCache,
 ) {
     suspend fun login(login: String, password: String): TokenResponse =
         http.post(Accounts.Users.Auth.Login()) {
@@ -27,8 +31,11 @@ class AccountsDataSource(
             setBody(AuthRequest(login, password))
         }.body()
     
-    suspend fun logout(): TokenResponse =
-        http.postAuthenticated(Accounts.Users.Auth.Logout()).body()
+    suspend fun logout(): TokenResponse {
+        return http.postAuthenticated(Accounts.Users.Auth.Logout()).body<TokenResponse>().also {
+            favoritesMemoryCache.clear()
+        }
+    }
     
     suspend fun myProfile(): ProfileResponse =
         http.getAuthenticated(Accounts.Users.Me.Profile()).body()
@@ -61,5 +68,40 @@ class AccountsDataSource(
                 }
             }
         }.body()
+    }
+    
+    suspend fun favoriteReleasesIds(): List<Int> {
+        if (favoritesMemoryCache.isFresh()) {
+            return favoritesMemoryCache.getFavoriteReleases()
+        }
+        return http.getAuthenticated(Accounts.Users.Me.Favorites.Ids()).body<List<Int>>().also {
+            favoritesMemoryCache.setFavoriteReleases(it)
+        }
+    }
+    
+    suspend fun addFavoriteReleases(releases: List<ReleaseId>) {
+        http.ignoringBrotli().postAuthenticated(Accounts.Users.Me.Favorites()) {
+            contentType(ContentType.Application.Json)
+            setBody(releases)
+        }.also { resp ->
+            if (resp.status.isSuccess()) {
+                favoritesMemoryCache.addFavoriteReleases(releases.map { it.releaseId })
+            } else {
+                throw ClientRequestException(resp, resp.body())
+            }
+        }
+    }
+
+    suspend fun removeFavoriteReleases(releases: List<ReleaseId>) {
+        http.ignoringBrotli().deleteAuthenticated(Accounts.Users.Me.Favorites()) {
+            contentType(ContentType.Application.Json)
+            setBody(releases)
+        }.also { resp ->
+            if (resp.status.isSuccess()) {
+                favoritesMemoryCache.removeFavoriteReleases(releases.map { it.releaseId })
+            } else {
+                throw ClientRequestException(resp, resp.body())
+            }
+        }
     }
 }

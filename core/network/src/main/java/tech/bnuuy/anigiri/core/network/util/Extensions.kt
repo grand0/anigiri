@@ -1,6 +1,7 @@
 package tech.bnuuy.anigiri.core.network.util
 
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.resources.delete
 import io.ktor.client.plugins.resources.get
 import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.HttpRequestBuilder
@@ -28,6 +29,20 @@ internal suspend inline fun <reified T : Any> HttpClient.postAuthenticated(
 ): HttpResponse {
     val appSession = NetworkComponent.appSession
     return post(resource) {
+        val token = appSession.getAuthToken()
+        if (token != null) {
+            header("Authorization", "Bearer $token")
+        }
+        builder()
+    }
+}
+
+internal suspend inline fun <reified T : Any> HttpClient.deleteAuthenticated(
+    resource: T,
+    builder: HttpRequestBuilder.() -> Unit = {}
+): HttpResponse {
+    val appSession = NetworkComponent.appSession
+    return delete(resource) {
         val token = appSession.getAuthToken()
         if (token != null) {
             header("Authorization", "Bearer $token")
