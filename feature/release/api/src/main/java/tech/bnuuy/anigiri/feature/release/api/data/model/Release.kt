@@ -13,6 +13,7 @@ data class Release(
     val description: String,
     val episodesTotal: Int?,
     val episodeDurationMinutes: Int?,
+    val favorites: Int,
     val genres: List<Genre>?,
     val members: Map<String, List<String>>?,
     val episodes: List<Episode>?,

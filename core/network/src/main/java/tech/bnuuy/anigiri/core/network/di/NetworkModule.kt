@@ -17,6 +17,7 @@ import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import tech.bnuuy.anigiri.core.network.BuildConfig
+import tech.bnuuy.anigiri.core.network.cache.FavoritesMemoryCache
 import tech.bnuuy.anigiri.core.network.datasource.AccountsDataSource
 import tech.bnuuy.anigiri.core.network.datasource.AnimeDataSource
 import tech.bnuuy.anigiri.core.network.encoder.brotli
@@ -52,6 +53,7 @@ val networkModule = module {
     }
     
     singleOf(::AppSession)
+    singleOf(::FavoritesMemoryCache)
     
     factoryOf(::AnimeDataSource)
     factoryOf(::AccountsDataSource)

@@ -6,4 +6,7 @@ data class ReleaseState(
     val release: Release? = null,
     val isLoading: Boolean = true,
     val error: Throwable? = null,
+
+    val isFavoriteLoading: Boolean = false,
+    val isFavorite: Boolean? = null,
 )
