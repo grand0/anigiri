@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "421306924512",
+    "project_id": "anigiri-b8514",
+    "storage_bucket": "anigiri-b8514.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:421306924512:android:cbbe9803c0853c93b0bf85",
+        "android_client_info": {
+          "package_name": "tech.bnuuy.anigiri"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiPZ054yBV8R_iqDhfwEDw_DeuZDsGxEE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
