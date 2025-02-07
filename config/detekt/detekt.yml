@@ -25,6 +25,8 @@ style:
     active: true
   ForbiddenComment:
     active: false
+  WildcardImport: 
+    excludeImports: ['org.junit.Assert.*']
 
 exceptions:
   TooGenericExceptionCaught:
