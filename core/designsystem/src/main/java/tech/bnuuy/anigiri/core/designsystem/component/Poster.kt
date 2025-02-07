@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 
+const val PosterAspectRatio = 2f / 3f
+
 @Composable
 fun Poster(
     painter: Painter? = null,
@@ -29,7 +31,7 @@ fun Poster(
         modifier
             .padding(16.dp)
             .width(100.dp)
-            .aspectRatio(2f / 3f)
+            .aspectRatio(PosterAspectRatio)
     ) {
         if (isLoading) {
             ShimmerLoader(

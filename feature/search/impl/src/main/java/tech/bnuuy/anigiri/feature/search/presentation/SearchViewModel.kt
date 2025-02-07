@@ -8,7 +8,6 @@ import androidx.paging.cachedIn
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -118,7 +117,7 @@ internal class SearchViewModel(
     
     private fun onPageReceived(page: PagedContent<Release>, query: String) = intent {
         reduce { state.copy(totalItems = page.totalItems) }
-        if (query.isNotBlank() && query.trim().length >= 3) {
+        if (query.isNotBlank() && query.trim().length >= MINIMUM_QUERY_LENGTH_TO_SAVE) {
             addSearchQuery(query.trim())
         }
     }
@@ -131,5 +130,9 @@ internal class SearchViewModel(
         }.onSuccess {
             loadSearchHistory()
         }
+    }
+    
+    companion object {
+        private const val MINIMUM_QUERY_LENGTH_TO_SAVE = 3
     }
 }

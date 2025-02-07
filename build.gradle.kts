@@ -12,6 +12,8 @@ plugins {
     alias(libs.plugins.gms) apply false
     alias(libs.plugins.crashlytics) apply false
     alias(libs.plugins.firebase.perf) apply false
+    
+    alias(libs.plugins.detekt) apply false
 }
 
 rootProject.group = "tech.bnuuy.anigiri"

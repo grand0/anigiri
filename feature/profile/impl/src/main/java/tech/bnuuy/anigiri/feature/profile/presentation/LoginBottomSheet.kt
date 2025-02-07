@@ -80,7 +80,8 @@ fun LoginBottomSheet(
                 singleLine = true,
                 enabled = !isLoggingIn,
                 modifier = Modifier.fillMaxWidth(),
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None
+                    else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(
                         onClick = { passwordVisible = !passwordVisible },

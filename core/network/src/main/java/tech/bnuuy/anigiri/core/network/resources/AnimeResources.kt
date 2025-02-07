@@ -2,8 +2,9 @@ package tech.bnuuy.anigiri.core.network.resources
 
 import io.ktor.resources.Resource
 
+@Suppress("MatchingDeclarationName")
 @Resource("/anime")
-class Anime() {
+class Anime {
     
     @Resource("releases")
     class Releases(val parent: Anime = Anime()) {
