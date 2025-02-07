@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.detekt)
 }
 
 android {
@@ -34,7 +35,6 @@ android {
     }
     buildFeatures {
         compose = true
-        buildConfig = true
     }
 }
 
@@ -47,11 +47,17 @@ dependencies {
     implementation(libs.bundles.koin)
     implementation(libs.bundles.voyager)
     implementation(libs.bundles.orbit)
-    implementation(libs.bundles.ktor)
     implementation(libs.bundles.coil)
     implementation(libs.kotlinx.datetime)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+detekt {
+    toolVersion = libs.versions.detekt.get()
+    val configFile = File(project.rootDir, "config/detekt/detekt.yml")
+    config.setFrom(configFile)
+    buildUponDefaultConfig = true
 }

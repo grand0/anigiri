@@ -110,7 +110,9 @@ class SearchScreen : Screen {
             // this makes the contents slide down when the keyboard slides up.
             // i don't know why this is happening, so here is a dirty fix for this.
             val correctedPadding = PaddingValues(
-                top = (innerPadding.calculateTopPadding() - WindowInsets.ime.asPaddingValues().calculateBottomPadding()).coerceAtLeast(0.dp),
+                top = (innerPadding.calculateTopPadding()
+                        - WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+                        ).coerceAtLeast(0.dp),
                 bottom = innerPadding.calculateBottomPadding(),
             )
 
@@ -189,37 +191,14 @@ class SearchScreen : Screen {
                 onBackButtonClick = onBackButtonClick,
             )
             Spacer(Modifier.width(gapSize))
-            Box(
-                Modifier
-                    .fillMaxHeight()
-                    .aspectRatio(1f, matchHeightConstraintsFirst = true)
-                    .background(
-                        MaterialTheme.colorScheme.surfaceContainer,
-                        shape = RoundedCornerShape(8.dp),
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable(onClick = onFiltersClick),
-            ) {
-                BadgedBox(
-                    modifier = Modifier.align(Alignment.Center),
-                    badge = {
-                        if (showFiltersBadge) {
-                            Badge()
-                        }
-                    },
-                ) {
-                    Icon(
-                        Icons.Default.FilterList,
-                        contentDescription = null,
-                    )
-                }
-            }
+            FiltersButton(onClick = onFiltersClick, showFiltersBadge = showFiltersBadge)
         }
         LifecycleEffectOnce {
             focusRequester.requestFocus()
         }
     }
     
+    @Suppress("LongMethod")
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun SearchTextField(
@@ -309,6 +288,38 @@ class SearchScreen : Screen {
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         )
+    }
+    
+    @Composable
+    private fun FiltersButton(
+        onClick: () -> Unit = {},
+        showFiltersBadge: Boolean = false,
+    ) {
+        Box(
+            Modifier
+                .fillMaxHeight()
+                .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                .background(
+                    MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(8.dp),
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(onClick = onClick),
+        ) {
+            BadgedBox(
+                modifier = Modifier.align(Alignment.Center),
+                badge = {
+                    if (showFiltersBadge) {
+                        Badge()
+                    }
+                },
+            ) {
+                Icon(
+                    Icons.Default.FilterList,
+                    contentDescription = null,
+                )
+            }
+        }
     }
     
     @OptIn(ExperimentalLayoutApi::class)

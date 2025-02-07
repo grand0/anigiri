@@ -2,8 +2,9 @@ package tech.bnuuy.anigiri.core.network.resources
 
 import io.ktor.resources.Resource
 
+@Suppress("MatchingDeclarationName")
 @Resource("/accounts")
-class Accounts() {
+class Accounts {
     
     @Resource("users")
     class Users(val parent: Accounts = Accounts()) {

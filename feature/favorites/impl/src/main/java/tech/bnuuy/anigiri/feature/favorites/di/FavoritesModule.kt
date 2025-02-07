@@ -2,7 +2,6 @@ package tech.bnuuy.anigiri.feature.favorites.di
 
 import cafe.adriel.voyager.core.registry.screenModule
 import org.koin.core.module.dsl.factoryOf
-import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module

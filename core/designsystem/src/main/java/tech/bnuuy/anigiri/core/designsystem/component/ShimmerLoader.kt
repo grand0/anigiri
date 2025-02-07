@@ -8,16 +8,13 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -45,16 +42,15 @@ fun ShimmerLoader(modifier: Modifier = Modifier) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(brush = gradient)
-                    .clip(CircleShape),
+                    .background(brush = gradient),
                 contentAlignment = Alignment.Center
             ) {
-                Spacer(
-                    modifier = Modifier
-//                        .height(50.dp)
-//                        .fillMaxWidth()
-                        .background(Color(0x00008888))
-                )
+//                Spacer(
+//                    modifier = Modifier
+////                        .height(50.dp)
+////                        .fillMaxWidth()
+//                        .background(Color(0x00008888))
+//                )
             }
         }
     }

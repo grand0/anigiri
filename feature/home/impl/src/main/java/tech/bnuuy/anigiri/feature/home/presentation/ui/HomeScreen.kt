@@ -1,7 +1,6 @@
 package tech.bnuuy.anigiri.feature.home.presentation.ui
 
 import android.text.format.DateUtils
-import android.util.Log
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -11,14 +10,13 @@ import androidx.compose.foundation.LocalOverscrollConfiguration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.interaction.DragInteraction
-import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -30,7 +28,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.LazyListState
@@ -41,11 +38,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.automirrored.filled.ArrowRight
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Casino
-import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -63,25 +57,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -96,18 +85,17 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
-import tech.bnuuy.anigiri.core.designsystem.component.ShimmerLoader
+import tech.bnuuy.anigiri.core.designsystem.component.Poster
 import tech.bnuuy.anigiri.core.designsystem.plus
 import tech.bnuuy.anigiri.core.designsystem.theme.Typography
 import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
 import tech.bnuuy.anigiri.core.nav.Routes
-import tech.bnuuy.anigiri.feature.home.api.data.model.Release
 import tech.bnuuy.anigiri.feature.home.R
+import tech.bnuuy.anigiri.feature.home.api.data.model.Release
 import tech.bnuuy.anigiri.feature.home.presentation.HomeViewModel
 import tech.bnuuy.anigiri.feature.home.presentation.model.HomeAction
 import tech.bnuuy.anigiri.feature.home.presentation.model.HomeSideEffect
@@ -197,65 +185,80 @@ class HomeScreen : Screen {
                 .height(64.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
         ) {
-            Box(
-                Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .background(
-                        MaterialTheme.colorScheme.surfaceContainer,
-                        shape = RoundedCornerShape(8.dp),
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable(onClick = goToSearch),
-            ) {
-                Box(
-                    Modifier
-                        .padding(vertical = 8.dp, horizontal = 16.dp)
-                        .align(Alignment.Center)
-                ) {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = null,
-                    )
-                    Text(
-                        stringResource(R.string.search_hint),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.Center),
-                        textAlign = TextAlign.Center,
-                    )
-                }
-            }
+            SearchBox(onClick = goToSearch)
             Spacer(Modifier.width(gapSize))
+            ProfileButton(onClick = goToProfile, avatarUrl = avatarUrl)
+        }
+    }
+    
+    @Composable
+    private fun RowScope.SearchBox(
+        onClick: () -> Unit = {},
+    ) {
+        Box(
+            Modifier
+                .fillMaxHeight()
+                .weight(1f)
+                .background(
+                    MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(8.dp),
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(onClick = onClick),
+        ) {
             Box(
                 Modifier
-                    .fillMaxHeight()
-                    .aspectRatio(1f, matchHeightConstraintsFirst = true)
-                    .background(
-                        MaterialTheme.colorScheme.surfaceContainer,
-                        shape = RoundedCornerShape(8.dp),
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable(onClick = goToProfile),
-                contentAlignment = Alignment.Center,
+                    .padding(vertical = 8.dp, horizontal = 16.dp)
+                    .align(Alignment.Center)
             ) {
-                val avatarPainter = rememberAsyncImagePainter(
-                    model = avatarUrl,
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = null,
                 )
-                val avatarPainterState by avatarPainter.state.collectAsState()
-                
-                if (avatarPainterState is AsyncImagePainter.State.Success) {
-                    Image(
-                        avatarPainter,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp).clip(CircleShape),
-                    )
-                } else {
-                    Icon(
-                        Icons.Default.AccountCircle,
-                        contentDescription = null,
-                    )
-                }
+                Text(
+                    stringResource(R.string.search_hint),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.Center),
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
+    }
+    
+    @Composable
+    private fun ProfileButton(
+        onClick: () -> Unit = {},
+        avatarUrl: String? = null,
+    ) {
+        Box(
+            Modifier
+                .fillMaxHeight()
+                .aspectRatio(1f, matchHeightConstraintsFirst = true)
+                .background(
+                    MaterialTheme.colorScheme.surfaceContainer,
+                    shape = RoundedCornerShape(8.dp),
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            val avatarPainter = rememberAsyncImagePainter(
+                model = avatarUrl,
+            )
+            val avatarPainterState by avatarPainter.state.collectAsState()
+
+            if (avatarPainterState is AsyncImagePainter.State.Success) {
+                Image(
+                    avatarPainter,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp).clip(CircleShape),
+                )
+            } else {
+                Icon(
+                    Icons.Default.AccountCircle,
+                    contentDescription = null,
+                )
             }
         }
     }
@@ -412,10 +415,16 @@ class HomeScreen : Screen {
                 .collect { interaction ->
                     when(interaction) {
                         is DragInteraction.Start -> {
-                            difficulty.animateTo(1f, animationSpec = tween(50))
+                            difficulty.animateTo(
+                                TriggerLowDifficulty,
+                                animationSpec = tween(TriggerDifficultyChangeDuration)
+                            )
                         }
                         else -> {
-                            difficulty.animateTo(0.25f, animationSpec = tween(50))
+                            difficulty.animateTo(
+                                TriggerHighDifficulty,
+                                animationSpec = tween(TriggerDifficultyChangeDuration)
+                            )
                         }
                     }
                 }
@@ -423,7 +432,10 @@ class HomeScreen : Screen {
         
         if (overscrollProgressWithDifficulty == 1f && !overscrollTriggered) {
             overscrollTriggered = true
-            view.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+            view.performHapticFeedback(
+                HapticFeedbackConstants.KEYBOARD_TAP,
+                HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
+            )
             goToFavorites()
         } else if (overscrollProgressWithDifficulty != 1f) {
             overscrollTriggered = false
@@ -454,7 +466,10 @@ class HomeScreen : Screen {
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                     )
                 },
-                contentPadding = PaddingValues(start = 12.dp, end = 12.dp + overscrollThreshold * overscrollProgress),
+                contentPadding = PaddingValues(
+                    start = 12.dp,
+                    end = 12.dp + overscrollThreshold * overscrollProgress,
+                ),
                 suffix = {
                     Box(Modifier.padding(horizontal = 16.dp)) {
                         CircularProgressIndicator(
@@ -508,7 +523,16 @@ class HomeScreen : Screen {
                             }
                             .padding(8.dp)
                     ) {
-                        ReleasePoster(release)
+                        val posterPainter = rememberAsyncImagePainter(
+                            model = release.posterUrl,
+                            contentScale = ContentScale.Crop,
+                        )
+                        val painterState by posterPainter.state.collectAsState()
+                        Poster(
+                            painter = posterPainter,
+                            isLoading = painterState is AsyncImagePainter.State.Loading,
+                            isError = painterState is AsyncImagePainter.State.Error,
+                        )
                         Spacer(Modifier.height(8.dp))
                         releaseLabel(release)
                     }
@@ -528,9 +552,16 @@ class HomeScreen : Screen {
             verticalAlignment = Alignment.Top,
             modifier = Modifier.fillMaxWidth()
         ) {
-            ReleasePoster(
-                release = release,
-                modifier = Modifier.padding(8.dp),
+            val posterPainter = rememberAsyncImagePainter(
+                model = release.posterUrl,
+                contentScale = ContentScale.Crop,
+            )
+            val painterState by posterPainter.state.collectAsState()
+            Poster(
+                painter = posterPainter,
+                isLoading = painterState is AsyncImagePainter.State.Loading,
+                isError = painterState is AsyncImagePainter.State.Error,
+                modifier = Modifier.padding(8.dp)
             )
             Column(
                 verticalArrangement = Arrangement.Top,
@@ -550,42 +581,8 @@ class HomeScreen : Screen {
             }
         }
     }
-
-    @Composable
-    private fun ReleasePoster(release: Release, modifier: Modifier = Modifier) {
-        val posterPainter = rememberAsyncImagePainter(
-            model = release.posterUrl,
-            contentScale = ContentScale.Crop,
-        )
-        val painterState by posterPainter.state.collectAsState()
-        Box(modifier) {
-            Box(
-                Modifier
-                    .width(150.dp)
-                    .aspectRatio(2f / 3f)
-            ) {
-                when (painterState) {
-
-                    is AsyncImagePainter.State.Error -> Icon(
-                        Icons.Default.Image,
-                        contentDescription = null,
-                    )
-
-                    AsyncImagePainter.State.Empty,
-                    is AsyncImagePainter.State.Loading -> ShimmerLoader(
-                        Modifier.fillMaxSize()
-                    )
-
-                    is AsyncImagePainter.State.Success -> Image(
-                        posterPainter,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .fillMaxSize(),
-                    )
-                }
-            }
-        }
-    }
 }
+
+private const val TriggerLowDifficulty = 1f
+private const val TriggerHighDifficulty = 0.25f
+private const val TriggerDifficultyChangeDuration = 50

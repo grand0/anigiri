@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.buildconfig)
+    alias(libs.plugins.detekt)
 }
 
 buildConfig {
@@ -17,4 +18,11 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.brotli.dec)
     implementation(libs.datastore.preferences.core)
+}
+
+detekt {
+    toolVersion = libs.versions.detekt.get()
+    val configFile = File(project.rootDir, "config/detekt/detekt.yml")
+    config.setFrom(configFile)
+    buildUponDefaultConfig = true
 }

@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.detekt)
 }
 
 android {
@@ -42,4 +43,11 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+}
+
+detekt {
+    toolVersion = libs.versions.detekt.get()
+    val configFile = File(project.rootDir, "config/detekt/detekt.yml")
+    config.setFrom(configFile)
+    buildUponDefaultConfig = true
 }
