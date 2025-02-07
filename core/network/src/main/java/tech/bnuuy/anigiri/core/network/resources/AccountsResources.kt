@@ -1,8 +1,9 @@
+@file:Suppress("MatchingDeclarationName")
+
 package tech.bnuuy.anigiri.core.network.resources
 
 import io.ktor.resources.Resource
 
-@Suppress("MatchingDeclarationName")
 @Resource("/accounts")
 class Accounts {
     
