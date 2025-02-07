@@ -18,7 +18,6 @@ import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
 import tech.bnuuy.anigiri.core.network.di.networkModule
 import tech.bnuuy.anigiri.di.appModule
 import tech.bnuuy.anigiri.feature.favorites.di.favoritesModule
-import tech.bnuuy.anigiri.feature.home.BuildConfig
 import tech.bnuuy.anigiri.feature.home.di.homeModule
 import tech.bnuuy.anigiri.feature.home.presentation.ui.HomeScreen
 import tech.bnuuy.anigiri.feature.profile.di.profileModule

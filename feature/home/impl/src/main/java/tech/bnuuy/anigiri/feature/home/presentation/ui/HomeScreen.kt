@@ -529,6 +529,8 @@ class HomeScreen : Screen {
                         )
                         val painterState by posterPainter.state.collectAsState()
                         Poster(
+                            width = 150.dp,
+                            padding = PaddingValues(0.dp),
                             painter = posterPainter,
                             isLoading = painterState is AsyncImagePainter.State.Loading,
                             isError = painterState is AsyncImagePainter.State.Error,
