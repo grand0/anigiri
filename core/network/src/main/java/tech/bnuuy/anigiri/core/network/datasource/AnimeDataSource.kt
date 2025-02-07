@@ -3,6 +3,8 @@ package tech.bnuuy.anigiri.core.network.datasource
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.resources.get
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import tech.bnuuy.anigiri.core.network.datasource.response.GenreResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.MetaContentResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.ReleaseResponse
@@ -12,14 +14,17 @@ class AnimeDataSource(
     private val http: HttpClient,
 ) {
     
-    suspend fun getRandomRelease(): List<ReleaseResponse> =
+    suspend fun getRandomRelease(): List<ReleaseResponse> = withContext(Dispatchers.IO) {
         http.get(Anime.Releases.Random()).body()
+    }
 
-    suspend fun getLatestReleases(): List<ReleaseResponse> =
+    suspend fun getLatestReleases(): List<ReleaseResponse> = withContext(Dispatchers.IO) {
         http.get(Anime.Releases.Latest()).body()
+    }
 
-    suspend fun getRelease(id: Int): ReleaseResponse =
+    suspend fun getRelease(id: Int): ReleaseResponse = withContext(Dispatchers.IO) {
         http.get(Anime.Releases.Id(id = id)).body()
+    }
     
     suspend fun searchCatalog(
         page: Int = 1,
@@ -34,9 +39,9 @@ class AnimeDataSource(
         ageRatings: List<String>? = null,
         publishStatus: String? = null,
         productionStatus: String? = null,
-    ): MetaContentResponse<ReleaseResponse> {
-        return http.get(Anime.Catalog.Releases()) {
-            url { 
+    ): MetaContentResponse<ReleaseResponse> = withContext(Dispatchers.IO) {
+        http.get(Anime.Catalog.Releases()) {
+            url {
                 with(parameters) {
                     append("page", page.toString())
                     append("limit", limit.toString())
@@ -55,9 +60,11 @@ class AnimeDataSource(
         }.body()
     }
     
-    suspend fun catalogGenres(): List<GenreResponse> =
+    suspend fun catalogGenres(): List<GenreResponse> = withContext(Dispatchers.IO) { 
         http.get(Anime.Catalog.References.Genres()).body()
+    }
     
-    suspend fun catalogYears(): List<Int> =
+    suspend fun catalogYears(): List<Int> = withContext(Dispatchers.IO) {
         http.get(Anime.Catalog.References.Years()).body()
+    }
 }
