@@ -99,7 +99,7 @@ class AccountsDataSource(
     
     suspend fun favoriteReleasesIds(): List<Int> = withContext(Dispatchers.IO) {
         if (favoritesMemoryCache.isFresh()) {
-            favoritesMemoryCache.getFavoriteReleases()
+            return@withContext favoritesMemoryCache.getFavoriteReleases()
         }
         val resp = http.getAuthenticated(Accounts.Users.Me.Favorites.Ids())
         when (resp.status) {
