@@ -175,6 +175,7 @@ class ProfileScreen : Screen {
                         modifier = Modifier.align(Alignment.TopCenter),
                         isRefreshing = isProfileLoading,
                         state = pullToRefreshState,
+                        threshold = 160.dp
                     )
                 }
             }
