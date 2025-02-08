@@ -29,6 +29,8 @@ jobs:
         alias: ${{ secrets.ALIAS }}
         keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
         keyPassword: ${{ secrets.KEY_PASSWORD }}
+      env:
+        BUILD_TOOLS_VERSION: "34.0.0"
     - name: upload artifact to firebase
       uses: wzieba/Firebase-Distribution-Github-Action@v1
       with:
