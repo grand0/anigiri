@@ -20,10 +20,19 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew assembleRelease
+    - uses: r0adkll/sign-android-release@v1
+      name: Sign APK
+      id: sign_app
+      with:
+        releaseDirectory: app/build/outputs/apk/release
+        signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+        alias: ${{ secrets.ALIAS }}
+        keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+        keyPassword: ${{ secrets.KEY_PASSWORD }}
     - name: upload artifact to firebase
       uses: wzieba/Firebase-Distribution-Github-Action@v1
       with:
         appId: ${{secrets.FIREBASE_APP_ID}}
         serviceCredentialsFileContent: ${{ secrets.FIREBASE_CREDENTIAL_FILE_CONTENT }}
         groups: gh_testers
-        file: app/build/outputs/apk/release/app-release-unsigned.apk
+        file: ${{steps.sign_app.outputs.signedReleaseFile}}
