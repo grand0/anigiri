@@ -252,7 +252,9 @@ class HomeScreen : Screen {
                 Image(
                     avatarPainter,
                     contentDescription = null,
-                    modifier = Modifier.size(32.dp).clip(CircleShape),
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(CircleShape),
                 )
             } else {
                 Icon(
@@ -307,6 +309,15 @@ class HomeScreen : Screen {
             LazyColumn(
                 contentPadding = contentPadding,
             ) {
+                item {
+                    Box(Modifier.padding(16.dp)) {
+                        FetchRandomReleaseButton(
+                            onClick = onRandomClick,
+                            isLoading = isRandomLoading,
+                        )
+                    }
+                }
+                
                 if (latestReleases.isNotEmpty()) {
                     item {
                         LatestReleasesList(latestReleases)
@@ -323,19 +334,14 @@ class HomeScreen : Screen {
                 }
                 
                 item {
-                    Box(Modifier.padding(16.dp)) {
-                        FetchRandomReleaseButton(
-                            onClick = onRandomClick,
-                            isLoading = isRandomLoading,
-                        )
-                    }
-                }
-                
-                items(50) {
-                    Text("Item $it",
-                        Modifier
-                            .fillMaxSize()
-                            .padding(16.dp))
+                    Text(
+                        stringResource(R.string.coming_soon),
+                        style = Typography.labelMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 36.dp, bottom = 36.dp),
+                        textAlign = TextAlign.Center,
+                    )
                 }
             }
         }
@@ -388,7 +394,7 @@ class HomeScreen : Screen {
                     )
                 }
             },
-            contentPadding = PaddingValues(12.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp),
         )
     }
 
@@ -454,7 +460,9 @@ class HomeScreen : Screen {
                     )
                     .offset {
                         IntOffset(
-                            x = -overscrollAmount.roundToInt().coerceAtLeast(0),
+                            x = -overscrollAmount
+                                .roundToInt()
+                                .coerceAtLeast(0),
                             y = 0,
                         )
                     },
@@ -473,13 +481,17 @@ class HomeScreen : Screen {
                 suffix = {
                     Box(Modifier.padding(horizontal = 16.dp)) {
                         CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.Center).size(48.dp),
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(48.dp),
                             gapSize = 0.dp,
                             trackColor = Color.Transparent,
                             progress = { overscrollProgressWithDifficulty },
                         )
                         IconButton(
-                            modifier = Modifier.align(Alignment.Center).size(48.dp),
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(48.dp),
                             onClick = { goToFavorites() },
                         ) {
                             Icon(Icons.AutoMirrored.Default.ArrowForward, contentDescription = null)
