@@ -7,7 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -26,7 +26,7 @@ fun ExpandableTextCard(
     fontStyle: FontStyle? = null,
     textAlign: TextAlign? = null,
 ) {
-    var expandable by remember { mutableStateOf(false) }
+    var expandable by rememberSaveable { mutableStateOf(false) }
     
     ExpandableCard(
         title = title,
