@@ -2,4 +2,15 @@
 <resources>
     <string name="description">Описание</string>
     <string name="authorize_to_add_favorites">Авторизуйтесь, чтобы добавлять релизы в избранное</string>
+    <string name="is_in_production">Сейчас в озвучке</string>
+    <string name="is_not_in_production">Озвучка завершена</string>
+    <string name="ongoing">Онгоинг</string>
+    <string name="not_ongoing">Релиз завершён</string>
+    <string name="year">Год</string>
+    <string name="age_rating">Ограничение</string>
+    <string name="episodes">Эпизоды</string>
+    <string name="n_episodes">Эпизодов</string>
+    <string name="n_minutes">%1$s мин</string>
+    <string name="episode_duration">Длина эпизода</string>
+    <string name="unnamed">Безымянный</string>
 </resources>

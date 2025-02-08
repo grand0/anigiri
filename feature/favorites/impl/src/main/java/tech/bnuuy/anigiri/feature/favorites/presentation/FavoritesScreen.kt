@@ -21,6 +21,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -122,9 +124,20 @@ internal class FavoritesScreen : Screen {
             return
         }
 
+        val pullToRefreshState = rememberPullToRefreshState()
+        val isRefreshing = releases.loadState.refresh is LoadState.Loading
         PullToRefreshBox(
-            isRefreshing = releases.loadState.refresh is LoadState.Loading,
-            onRefresh = { releases.refresh() }
+            isRefreshing = isRefreshing,
+            onRefresh = { releases.refresh() },
+            state = pullToRefreshState,
+            indicator = {
+                Indicator(
+                    state = pullToRefreshState,
+                    isRefreshing = isRefreshing,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    threshold = 160.dp
+                )
+            }
         ) {
             LazyColumn(
                 modifier = Modifier

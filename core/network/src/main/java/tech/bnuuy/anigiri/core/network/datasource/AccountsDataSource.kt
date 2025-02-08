@@ -7,6 +7,8 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import tech.bnuuy.anigiri.core.network.cache.FavoritesMemoryCache
 import tech.bnuuy.anigiri.core.network.datasource.request.AuthRequest
 import tech.bnuuy.anigiri.core.network.datasource.request.ReleaseId
@@ -27,23 +29,23 @@ class AccountsDataSource(
     private val http: HttpClient,
     private val favoritesMemoryCache: FavoritesMemoryCache,
 ) {
-    suspend fun login(login: String, password: String): TokenResponse {
+    suspend fun login(login: String, password: String): TokenResponse = withContext(Dispatchers.IO) {
         val resp = http.post(Accounts.Users.Auth.Login()) {
             contentType(ContentType.Application.Json)
             setBody(AuthRequest(login, password))
         }
         when (resp.status) {
-            HttpStatusCode.OK -> return resp.body()
-            HttpStatusCode.Unauthorized, HttpStatusCode.UnprocessableEntity -> 
+            HttpStatusCode.OK -> resp.body()
+            HttpStatusCode.Unauthorized, HttpStatusCode.UnprocessableEntity ->
                 throw WrongCredentialsException()
             else -> throw UnknownException(resp.status.description)
         }
     }
     
-    suspend fun logout(): TokenResponse {
+    suspend fun logout(): TokenResponse = withContext(Dispatchers.IO) {
         val resp = http.postAuthenticated(Accounts.Users.Auth.Logout())
         when (resp.status) {
-            HttpStatusCode.OK -> return resp.body<TokenResponse>().also {
+            HttpStatusCode.OK -> resp.body<TokenResponse>().also {
                 favoritesMemoryCache.clear()
             }
             HttpStatusCode.Unauthorized -> throw NotAuthorizedException()
@@ -51,10 +53,10 @@ class AccountsDataSource(
         }
     }
     
-    suspend fun myProfile(): ProfileResponse {
+    suspend fun myProfile(): ProfileResponse = withContext(Dispatchers.IO) {
         val resp = http.getAuthenticated(Accounts.Users.Me.Profile())
         when (resp.status) {
-            HttpStatusCode.OK -> return resp.body()
+            HttpStatusCode.OK -> resp.body()
             HttpStatusCode.Forbidden, HttpStatusCode.NotFound -> throw NotAuthorizedException()
             else -> throw UnknownException(resp.status.description)
         }
@@ -71,7 +73,7 @@ class AccountsDataSource(
         search: String? = null,
         sorting: String? = null,
         ageRatings: List<String>? = null,
-    ): MetaContentResponse<ReleaseResponse> {
+    ): MetaContentResponse<ReleaseResponse> = withContext(Dispatchers.IO) {
         val resp = http.getAuthenticated(Accounts.Users.Me.Favorites.Releases()) {
             url {
                 with(parameters) {
@@ -89,27 +91,28 @@ class AccountsDataSource(
             }
         }
         when (resp.status) {
-            HttpStatusCode.OK -> return resp.body()
+            HttpStatusCode.OK -> resp.body()
             HttpStatusCode.Forbidden -> throw NotAuthorizedException()
             else -> throw UnknownException(resp.status.description)
         }
     }
     
-    suspend fun favoriteReleasesIds(): List<Int> {
+    suspend fun favoriteReleasesIds(): List<Int> = withContext(Dispatchers.IO) {
         if (favoritesMemoryCache.isFresh()) {
-            return favoritesMemoryCache.getFavoriteReleases()
+            return@withContext favoritesMemoryCache.getFavoriteReleases()
         }
         val resp = http.getAuthenticated(Accounts.Users.Me.Favorites.Ids())
         when (resp.status) {
-            HttpStatusCode.OK -> return resp.body<List<Int>>().also {
+            HttpStatusCode.OK -> resp.body<List<Int>>().also {
                 favoritesMemoryCache.setFavoriteReleases(it)
             }
+
             HttpStatusCode.Forbidden -> throw NotAuthorizedException()
             else -> throw UnknownException(resp.status.description)
         }
     }
     
-    suspend fun addFavoriteReleases(releases: List<ReleaseId>) {
+    suspend fun addFavoriteReleases(releases: List<ReleaseId>) = withContext(Dispatchers.IO) {
         val resp = http.ignoringBrotli().postAuthenticated(Accounts.Users.Me.Favorites()) {
             contentType(ContentType.Application.Json)
             setBody(releases)
@@ -122,7 +125,7 @@ class AccountsDataSource(
         }
     }
 
-    suspend fun removeFavoriteReleases(releases: List<ReleaseId>) {
+    suspend fun removeFavoriteReleases(releases: List<ReleaseId>) = withContext(Dispatchers.IO) {
         val resp = http.ignoringBrotli().deleteAuthenticated(Accounts.Users.Me.Favorites()) {
             contentType(ContentType.Application.Json)
             setBody(releases)
