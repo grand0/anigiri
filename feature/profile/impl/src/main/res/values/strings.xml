@@ -7,5 +7,7 @@
     <string name="login_label">Логин</string>
     <string name="password_label">Пароль</string>
     <string name="unnamed">Безымянный</string>
-    <string name="login_to_your_account">Войдите в аккаунт</string>
+    <string name="login_to_your_account">Войдите в аккаунт AniLibria</string>
+    <string name="anilibria_reg">Регистрация в AniLibria</string>
+    <string name="anilibria_reg_explanation">К сожалению, на данный момент из-за ограничений доступа зарегистрироваться можно только на официальном сайте AniLibria: https://anilibria.top. После регистрации вы сможете выполнить вход здесь.</string>
 </resources>
