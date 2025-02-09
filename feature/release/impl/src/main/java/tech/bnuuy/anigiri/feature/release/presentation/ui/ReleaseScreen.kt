@@ -1,7 +1,6 @@
 package tech.bnuuy.anigiri.feature.release.presentation.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -432,11 +431,9 @@ class ReleaseScreen(val releaseId: Int) : Screen {
                     Text(
                         episode.name ?: episode.nameEng ?: stringResource(R.string.unnamed),
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .basicMarquee(),
+                            .fillMaxWidth(),
                         style = Typography.titleMedium,
                         textAlign = TextAlign.Start,
-                        maxLines = 1,
                     )
                     if (episode.nameEng != null && episode.name != null) {
                         Text(
