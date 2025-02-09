@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -90,7 +90,7 @@ internal class FavoritesScreen : Screen {
         Box(
             Modifier
                 .background(gradient)
-                .safeDrawingPadding()
+                .statusBarsPadding()
                 .padding(8.dp)
                 .fillMaxWidth()
                 .height(64.dp),

@@ -8,17 +8,14 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -105,21 +102,10 @@ class SearchScreen : Screen {
                 )
             },
         ) { innerPadding ->
-            // TODO: get rid of this abomination. some stuff still breaks
-            // for some reason height of the keyboard appends to the top of the innerPadding.
-            // this makes the contents slide down when the keyboard slides up.
-            // i don't know why this is happening, so here is a dirty fix for this.
-            val correctedPadding = PaddingValues(
-                top = (innerPadding.calculateTopPadding()
-                        - WindowInsets.ime.asPaddingValues().calculateBottomPadding()
-                        ).coerceAtLeast(0.dp),
-                bottom = innerPadding.calculateBottomPadding(),
-            )
-
             ResultsList(
                 results = results,
                 onResultClick = { nav.push(ScreenRegistry.get(Routes.Release(it.id))) },
-                contentPadding = correctedPadding,
+                contentPadding = innerPadding,
                 totalItems = state.totalItems,
             )
         }
@@ -174,7 +160,7 @@ class SearchScreen : Screen {
         Row(
             Modifier
                 .background(gradient)
-                .safeDrawingPadding()
+                .statusBarsPadding()
                 .padding(gapSize)
                 .height(64.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
@@ -183,7 +169,6 @@ class SearchScreen : Screen {
                 modifier = Modifier
                     .fillMaxHeight()
                     .weight(1f)
-                    .safeDrawingPadding()
                     .focusRequester(focusRequester),
                 query = query ?: "",
                 onValueChange = onSearch,
