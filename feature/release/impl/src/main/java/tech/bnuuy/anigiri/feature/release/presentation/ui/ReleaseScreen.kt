@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -89,6 +91,7 @@ class ReleaseScreen(val releaseId: Int) : Screen {
         
         val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
+        WindowInsets.ime
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
@@ -160,7 +163,7 @@ class ReleaseScreen(val releaseId: Int) : Screen {
         Box(
             Modifier
                 .background(gradient)
-                .safeDrawingPadding()
+                .statusBarsPadding()
                 .padding(8.dp)
                 .fillMaxWidth()
                 .height(64.dp),

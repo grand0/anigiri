@@ -12,8 +12,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -60,7 +60,6 @@ import coil3.compose.AsyncImagePainter
 import coil3.compose.rememberAsyncImagePainter
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
-import tech.bnuuy.anigiri.core.designsystem.plus
 import tech.bnuuy.anigiri.core.designsystem.theme.Typography
 import tech.bnuuy.anigiri.feature.profile.R
 import tech.bnuuy.anigiri.feature.profile.api.data.model.Profile
@@ -80,6 +79,9 @@ class ProfileScreen : Screen {
 
         Scaffold(
             Modifier.fillMaxSize(),
+            topBar = {
+                AppBar(onBackPressed = { nav.pop() })
+            },
         ) { innerPadding ->
             if (state.isFirstLoad) {
                 Box(
@@ -95,11 +97,9 @@ class ProfileScreen : Screen {
                     onLogin = { showLoginSheet = true },
                     onLogout = { vm.dispatch(ProfileAction.Logout) },
                     onRegister = { showRegistrationDialog = true },
-                    contentPadding = innerPadding + PaddingValues(top = 48.dp),
+                    contentPadding = innerPadding,
                 )
             }
-            
-            AppBar(onBackPressed = { nav.pop() })
         }
         
         if (showRegistrationDialog) {
@@ -133,7 +133,7 @@ class ProfileScreen : Screen {
         Box(
             Modifier
                 .background(gradient)
-                .safeDrawingPadding()
+                .statusBarsPadding()
                 .padding(8.dp)
                 .fillMaxWidth()
                 .height(64.dp),
