@@ -29,6 +29,7 @@ firebasePerf = "1.4.2"
 datastore = "1.1.2"
 detekt = "1.23.7"
 mockk = "1.13.16"
+media3 = "1.7.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -101,6 +102,14 @@ datastore-preferences = { group = "androidx.datastore", name = "datastore-prefer
 
 # mockk
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+
+# implementation("androidx.media3:media3-exoplayer:1.7.1")
+# implementation("androidx.media3:media3-exoplayer-hls:1.7.1")
+# implementation("androidx.media3:media3-ui-compose:1.7.1")
+# media3 exoplayer
+media3-exoplayer = { group = "androidx.media3", name = "media3-exoplayer", version.ref = "media3" }
+media3-exoplayer-hls = { group = "androidx.media3", name = "media3-exoplayer-hls", version.ref = "media3" }
+media3-ui-compose = { group = "androidx.media3", name = "media3-ui-compose", version.ref = "media3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -181,4 +190,10 @@ firebase = [
     "firebase-analytics",
     "firebase-crashlytics",
     "firebase-perf",
+]
+
+exoplayer = [
+    "media3-exoplayer",
+    "media3-exoplayer-hls",
+    "media3-ui-compose",
 ]

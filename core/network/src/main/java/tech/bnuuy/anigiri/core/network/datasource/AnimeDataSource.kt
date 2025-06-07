@@ -5,6 +5,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.resources.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import tech.bnuuy.anigiri.core.network.datasource.response.EpisodeResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.GenreResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.MetaContentResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.ReleaseResponse
@@ -66,5 +67,9 @@ class AnimeDataSource(
     
     suspend fun catalogYears(): List<Int> = withContext(Dispatchers.IO) {
         http.get(Anime.Catalog.References.Years()).body()
+    }
+
+    suspend fun getEpisode(id: String): EpisodeResponse = withContext(Dispatchers.IO) {
+        http.get(Anime.Releases.Episodes.Id(id = id)).body()
     }
 }

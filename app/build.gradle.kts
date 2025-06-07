@@ -10,12 +10,12 @@ plugins {
 
 android {
     namespace = "tech.bnuuy.anigiri"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "tech.bnuuy.anigiri"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "0.1"
 
@@ -53,7 +53,8 @@ dependencies {
     implementation(project(":feature:search:impl"))
     implementation(project(":feature:profile:impl"))
     implementation(project(":feature:favorites:impl"))
-    
+    implementation(project(":feature:player:impl"))
+
     implementation(libs.bundles.voyager)
     implementation(libs.bundles.koin)
     implementation(libs.bundles.coil)

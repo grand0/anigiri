@@ -29,6 +29,10 @@ data class EpisodeResponse(
     val duration: Int,
     @SerialName("updated_at")
     val updatedAt: String,
+
+    // context-based fields
+    @SerialName("release")
+    val release: ReleaseResponse?,
 ) {
 
     @Serializable

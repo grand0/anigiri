@@ -20,6 +20,7 @@ import tech.bnuuy.anigiri.di.appModule
 import tech.bnuuy.anigiri.feature.favorites.di.favoritesModule
 import tech.bnuuy.anigiri.feature.home.di.homeModule
 import tech.bnuuy.anigiri.feature.home.presentation.ui.HomeScreen
+import tech.bnuuy.anigiri.feature.player.di.playerModule
 import tech.bnuuy.anigiri.feature.profile.di.profileModule
 import tech.bnuuy.anigiri.feature.release.di.releaseModule
 import tech.bnuuy.anigiri.feature.search.di.searchModule
@@ -41,6 +42,7 @@ class MainActivity : ComponentActivity() {
                     searchModule,
                     profileModule,
                     favoritesModule,
+                    playerModule,
                 )
             }) {
                 setSingletonImageLoaderFactory {

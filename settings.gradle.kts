@@ -36,8 +36,7 @@ include(":feature:search:api")
 include(":feature:search:impl")
 include(":feature:profile:api")
 include(":feature:profile:impl")
-
 include(":feature:favorites:api")
-
 include(":feature:favorites:impl")
- 
+include(":feature:player:impl")
+include(":feature:player:api")
