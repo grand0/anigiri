@@ -1,11 +1,18 @@
 package tech.bnuuy.anigiri.core.network.di
 
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.firestore
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.plugins.logging.ANDROID
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.resources.Resources
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
@@ -16,6 +23,7 @@ import tech.bnuuy.anigiri.core.network.BuildConfig
 import tech.bnuuy.anigiri.core.network.cache.FavoritesMemoryCache
 import tech.bnuuy.anigiri.core.network.datasource.AccountsDataSource
 import tech.bnuuy.anigiri.core.network.datasource.AnimeDataSource
+import tech.bnuuy.anigiri.core.network.datasource.CommentsDataSource
 import tech.bnuuy.anigiri.core.network.encoder.brotli
 import tech.bnuuy.anigiri.core.network.session.AppSession
 
@@ -35,22 +43,24 @@ val networkModule = module {
                 brotli()
             }
 
-//            if (BuildConfig.DEBUG) {
-//                install(Logging) {
-//                    logger = Logger.ANDROID
-//                    level = LogLevel.ALL
-//                }
-//            }
+            if (BuildConfig.DEBUG) {
+                install(Logging) {
+                    logger = Logger.ANDROID
+                    level = LogLevel.ALL
+                }
+            }
 
             defaultRequest {
                 url(BuildConfig.ANILIBRIA_BASE_URL)
             }
         }
     }
+    single<FirebaseFirestore> { Firebase.firestore }
     
     singleOf(::AppSession)
     singleOf(::FavoritesMemoryCache)
     
     factoryOf(::AnimeDataSource)
     factoryOf(::AccountsDataSource)
+    factoryOf(::CommentsDataSource)
 }

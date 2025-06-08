@@ -1,5 +1,6 @@
 package tech.bnuuy.anigiri.core.network.util
 
+import com.google.firebase.firestore.DocumentSnapshot
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.resources.delete
 import io.ktor.client.plugins.resources.get
@@ -7,6 +8,8 @@ import io.ktor.client.plugins.resources.post
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
+import kotlinx.datetime.Instant
+import kotlinx.datetime.toKotlinInstant
 import tech.bnuuy.anigiri.core.network.di.NetworkComponent
 
 internal suspend inline fun <reified T : Any> HttpClient.getAuthenticated(
@@ -50,3 +53,6 @@ internal suspend inline fun <reified T : Any> HttpClient.deleteAuthenticated(
         builder()
     }
 }
+
+internal fun DocumentSnapshot.getInstant(field: String): Instant? =
+    getTimestamp(field)?.toInstant()?.toKotlinInstant()
