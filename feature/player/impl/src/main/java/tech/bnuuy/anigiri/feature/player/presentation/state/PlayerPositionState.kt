@@ -2,9 +2,9 @@ package tech.bnuuy.anigiri.feature.player.presentation.state
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.media3.common.Player
@@ -41,7 +41,6 @@ class PlayerPositionState(private val player: Player) {
                 while (true) {
                     currentPosition = if (isEnabled) player.currentPosition else 0
                     duration = if (isEnabled) player.duration else 0
-                    println("UPD: $currentPosition $duration")
                     delay(1.seconds / 10)
                 }
             }
@@ -57,7 +56,6 @@ class PlayerPositionState(private val player: Player) {
                             if (isEnabled) currentPosition else 0
                         this@PlayerPositionState.duration =
                             if (isEnabled) duration else 0
-                        println("GOT EVENT: ${this@PlayerPositionState.currentPosition}")
                     }
                 }
             }

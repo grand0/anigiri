@@ -3,13 +3,10 @@ package tech.bnuuy.anigiri.feature.player.presentation
 import android.content.Context
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import androidx.annotation.OptIn
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,61 +19,78 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeGesturesPadding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Fullscreen
-import androidx.compose.material.icons.filled.FullscreenExit
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.automirrored.filled.Comment
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Slider
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
-import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.ui.compose.PlayerSurface
-import androidx.media3.ui.compose.modifiers.resizeWithContentScale
-import androidx.media3.ui.compose.state.rememberPlayPauseButtonState
-import androidx.media3.ui.compose.state.rememberPresentationState
+import cafe.adriel.voyager.core.annotation.ExperimentalVoyagerApi
+import cafe.adriel.voyager.core.lifecycle.LifecycleEffectOnce
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import kotlinx.coroutines.delay
+import coil3.compose.AsyncImagePainter
+import coil3.compose.rememberAsyncImagePainter
+import kotlinx.datetime.Instant
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toJavaLocalDateTime
+import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectAsState
+import tech.bnuuy.anigiri.core.designsystem.component.CardElevation
+import tech.bnuuy.anigiri.core.designsystem.component.ContentCard
+import tech.bnuuy.anigiri.core.designsystem.theme.Typography
+import tech.bnuuy.anigiri.feature.player.R
+import tech.bnuuy.anigiri.feature.player.api.data.model.Comment
 import tech.bnuuy.anigiri.feature.player.api.data.model.Episode
-import tech.bnuuy.anigiri.feature.player.presentation.state.rememberPlayerPositionState
+import tech.bnuuy.anigiri.feature.player.presentation.player.MediaPlayer
 import tech.bnuuy.anigiri.feature.player.util.findActivity
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 internal class PlayerScreen(val episodeId: String) : Screen {
 
+    @OptIn(ExperimentalVoyagerApi::class)
     @Composable
     override fun Content() {
         val nav = LocalNavigator.currentOrThrow
@@ -118,36 +132,62 @@ internal class PlayerScreen(val episodeId: String) : Screen {
             }
         }
 
-        LifecycleStartEffect(state.isReadyToPlay) {
-            if (state.isReadyToPlay) {
-                player = initializePlayer(context, state.episode!!)
+        LaunchedEffect(player, state.isReadyToPlay) {
+            if (player != null && state.isReadyToPlay) {
+                prepareAndPlay(player!!, state.episode!!)
             }
-            onStopOrDispose {
+        }
+
+        LifecycleEffectOnce {
+            player = initializePlayer(context)
+            onDispose {
                 player?.release()
                 player = null
+
+                if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    // force to portrait but allow user to rotate to landscape afterwards
+                    activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
+                    activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER
+                }
             }
         }
 
         val onBackClicked: () -> Unit = { nav.pop() }
         val changeFullscreen: () -> Unit = {
             if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             } else {
-                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+                // force to portrait but allow user to rotate to landscape afterwards
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_PORTRAIT
+                activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER
             }
         }
-        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-            val playerModifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(PLAYER_PORTRAIT_ASPECT_RATIO)
-            Column(Modifier
-                .statusBarsPadding()
-                .fillMaxSize()) {
+
+        Scaffold { innerPadding ->
+            var columnModifier: Modifier = Modifier
+            if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                columnModifier = columnModifier.padding(innerPadding)
+            }
+            columnModifier = columnModifier.fillMaxSize()
+
+            Column(columnModifier) {
+                var playerModifier: Modifier = Modifier
+                var playerControlsModifier: Modifier = Modifier
+                if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    playerModifier = playerModifier
+                        .fillMaxWidth()
+                        .aspectRatio(PLAYER_PORTRAIT_ASPECT_RATIO)
+                } else {
+                    playerModifier = Modifier.fillMaxSize()
+                    playerControlsModifier = Modifier.safeGesturesPadding()
+                }
+
                 if (player != null) {
                     player?.let {
                         MediaPlayer(
                             it,
                             modifier = playerModifier,
+                            controlsModifier = playerControlsModifier,
                             onBackClicked = onBackClicked,
                             isFullscreen = orientation == Configuration.ORIENTATION_LANDSCAPE,
                             changeFullscreen = changeFullscreen,
@@ -160,129 +200,21 @@ internal class PlayerScreen(val episodeId: String) : Screen {
                         error = state.error
                     )
                 }
-                Text("Some text")
-                Text("Some text")
-                Text("Some text")
-            }
-        } else {
-            val playerModifier = Modifier.fillMaxSize()
-            val playerControlsModifier = Modifier.safeGesturesPadding()
-            if (player != null) {
-                player?.let {
-                    MediaPlayer(
-                        it,
-                        modifier = playerModifier,
-                        controlsModifier = playerControlsModifier,
-                        onBackClicked = onBackClicked,
-                        isFullscreen = orientation == Configuration.ORIENTATION_LANDSCAPE,
-                        changeFullscreen = changeFullscreen,
-                    )
-                }
-            } else {
-                MediaPlayerPlaceholder(
-                    modifier = playerModifier,
-                    isLoading = state.isLoading,
-                    error = state.error
-                )
-            }
-        }
-    }
 
-    private fun initializePlayer(context: Context, episode: Episode): Player =
-        ExoPlayer.Builder(context).build().apply {
-            // TODO: default quality choice? + error if no stream is available
-            setMediaItem(MediaItem.fromUri(
-                episode.mediaStreams.hls1080 ?:
-                episode.mediaStreams.hls720 ?:
-                episode.mediaStreams.hls480 ?: ""))
-            prepare()
-            play()
-        }
-
-    @OptIn(UnstableApi::class)
-    @Composable
-    private fun MediaPlayer(
-        player: Player,
-        modifier: Modifier = Modifier,
-        controlsModifier: Modifier = Modifier,
-        onBackClicked: () -> Unit,
-        isFullscreen: Boolean,
-        changeFullscreen: () -> Unit,
-    ) {
-        var showControls by remember { mutableStateOf(true) }
-        var lastInteractionTime by remember { mutableLongStateOf(System.currentTimeMillis()) }
-        var isSeeking by remember { mutableStateOf(false) }
-        val presentationState = rememberPresentationState(player)
-
-        LaunchedEffect(showControls, lastInteractionTime, isSeeking) {
-            if (showControls && !isSeeking) {
-                delay(PLAYER_CONTROLS_HIDE_DELAY - (System.currentTimeMillis() - lastInteractionTime))
-                showControls = false
-            }
-        }
-
-        Box(modifier.background(Color.Black)) {
-            PlayerSurface(
-                player,
-                modifier = Modifier
-                    .resizeWithContentScale(
-                        ContentScale.Fit,
-                        sourceSizeDp = presentationState.videoSizeDp,
-                    )
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = null
-                    ) {
-                        showControls = !showControls
-                        lastInteractionTime = System.currentTimeMillis()
-                    }
-            )
-            AnimatedVisibility(
-                visible = showControls,
-                enter = fadeIn(),
-                exit = fadeOut(),
-            ) {
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.5f))
-                        .then(controlsModifier)
-                ) {
-                    IconButton(onClick = onBackClicked, modifier = Modifier.align(Alignment.TopStart)) {
-                        Icon(
-                            Icons.AutoMirrored.Default.ArrowBack,
-                            contentDescription = null,
-                            tint = Color.White
+                if (orientation == Configuration.ORIENTATION_PORTRAIT) {
+                    state.episode?.let {
+                        EpisodeTitle(
+                            episodeTitle = it.name,
+                            ordinal = it.ordinal,
+                            releaseTitle = it.release?.name,
+                            modifier = Modifier.padding(vertical = 8.dp)
                         )
-                    }
-
-                    Row(
-                        modifier = modifier.align(Alignment.Center),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        val buttonModifier = Modifier.size(48.dp)
-                        PlayPauseButton(player, buttonModifier)
-                    }
-
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp)
-                    ) {
-                        IconButton(onClick = changeFullscreen, modifier = Modifier.align(Alignment.End)) {
-                            val icon = if (isFullscreen) Icons.Default.FullscreenExit else Icons.Default.Fullscreen
-                            Icon(icon, contentDescription = null, tint = Color.White)
-                        }
-
-                        PlayerSeekBar(
-                            player = player,
-                            onValueChange = { isSeeking = true },
-                            onValueChangeFinished = {
-                                isSeeking = false
-                                lastInteractionTime = System.currentTimeMillis()
-                            },
+                        CommentsList(
+                            comments = state.comments,
+                            isLoading = state.areCommentsLoading,
+                            error = state.commentsError,
+                            onLoadComments = { vm.dispatch(PlayerAction.LoadComments) },
+                            sendComment = { vm.dispatch(PlayerAction.SendComment(it)) }
                         )
                     }
                 }
@@ -290,44 +222,16 @@ internal class PlayerScreen(val episodeId: String) : Screen {
         }
     }
 
-    @OptIn(UnstableApi::class)
-    @Composable
-    private fun PlayPauseButton(player: Player, modifier: Modifier = Modifier) {
-        val state = rememberPlayPauseButtonState(player)
-        val icon = if (state.showPlay) Icons.Default.PlayArrow else Icons.Default.Pause
-        IconButton(onClick = state::onClick, modifier = modifier, enabled = state.isEnabled) {
-            Icon(icon, contentDescription = null, modifier = modifier, tint = Color.White)
-        }
-    }
+    private fun initializePlayer(context: Context): Player =
+        ExoPlayer.Builder(context).build()
 
-    @Composable
-    private fun PlayerSeekBar(
-        player: Player,
-        onValueChange: (Long) -> Unit,
-        onValueChangeFinished: () -> Unit,
-        modifier: Modifier = Modifier,
-    ) {
-        val state = rememberPlayerPositionState(player)
-        var currentPosition by remember { mutableLongStateOf(0) }
-        var isSeeking by remember { mutableStateOf(false) }
-        if (!isSeeking) currentPosition = state.currentPosition
-        println("SLIDER RECOMPOSITION: $currentPosition ${state.duration}")
-        Slider(
-            value = currentPosition.toFloat(),
-            onValueChange = {
-                isSeeking = true
-                currentPosition = it.toLong()
-                onValueChange(it.toLong())
-            },
-            onValueChangeFinished = {
-                state.seek(currentPosition)
-                isSeeking = false
-                onValueChangeFinished()
-            },
-            valueRange = 0f..state.duration.toFloat(),
-            enabled = state.isEnabled,
-            modifier = modifier.height(16.dp),
-        )
+    private fun prepareAndPlay(player: Player, episode: Episode) = player.apply {
+        setMediaItem(MediaItem.fromUri(
+            episode.mediaStreams.hls1080 ?:
+            episode.mediaStreams.hls720 ?:
+            episode.mediaStreams.hls480 ?: ""))
+        prepare()
+        play()
     }
 
     @Composable
@@ -351,6 +255,235 @@ internal class PlayerScreen(val episodeId: String) : Screen {
                     Icon(Icons.Default.Warning, contentDescription = null)
                     Text(error.toString())
                 }
+            }
+        }
+    }
+
+    @Composable
+    private fun EpisodeTitle(
+        episodeTitle: String?,
+        ordinal: Int,
+        releaseTitle: String?,
+        modifier: Modifier = Modifier,
+    ) {
+        Column(modifier.fillMaxWidth()) {
+            val titleText =
+                episodeTitle ?: stringResource(R.string.episode_ordinal_title_placeholder, ordinal)
+            val subtitleText = if (episodeTitle != null && releaseTitle != null) {
+                stringResource(R.string.episode_full_title_placeholder, ordinal, releaseTitle)
+            } else if (episodeTitle != null) {
+                stringResource(R.string.episode_ordinal_title_placeholder, ordinal)
+            } else releaseTitle
+            Text(
+                titleText,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                style = Typography.titleLarge
+            )
+            subtitleText?.let {
+                Box(Modifier.height(8.dp))
+                Text(
+                    it,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    style = Typography.bodyMedium
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun CommentsList(
+        comments: List<Comment>?,
+        isLoading: Boolean = false,
+        error: Throwable? = null,
+        onLoadComments: () -> Unit,
+        sendComment: (String) -> Unit,
+    ) {
+        var expanded by rememberSaveable { mutableStateOf(false) }
+        val boxPadding by animateDpAsState(
+            if (expanded) 0.dp else 8.dp
+        )
+        val headerConstPadding = 16.dp
+        val cardElevation by animateDpAsState(
+            if (expanded) 0.dp else CardElevation
+        )
+
+        var newComment by rememberSaveable { mutableStateOf("") }
+        val sendAndClear = {
+            if (newComment.isNotBlank()) {
+                sendComment(newComment.trim())
+                newComment = ""
+            }
+        }
+
+        Box(Modifier.padding(horizontal = boxPadding)) {
+            ContentCard(
+                modifier = Modifier
+                    .animateContentSize(),
+                elevation = cardElevation,
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clickable() {
+                                expanded = !expanded
+                                if (expanded && ((comments == null && !isLoading) || error != null)) {
+                                    onLoadComments()
+                                }
+                            }
+                            .padding(vertical = 8.dp, horizontal = headerConstPadding - boxPadding)
+                    ) {
+                        Text(
+                            stringResource(R.string.comments),
+                            style = Typography.titleMedium,
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .weight(1f)
+                        )
+                        Icon(
+                            if (expanded) Icons.Default.KeyboardArrowUp
+                                else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                        )
+                    }
+
+                    OutlinedTextField(
+                        newComment,
+                        modifier = Modifier
+                            .padding(
+                                bottom = 8.dp,
+                                start = headerConstPadding - boxPadding,
+                                end = headerConstPadding - boxPadding,
+                            )
+                            .fillMaxWidth(),
+                        onValueChange = { newComment = it },
+                        singleLine = true,
+                        maxLines = 1,
+                        placeholder = { Text(stringResource(R.string.your_comment)) },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                        keyboardActions = KeyboardActions(
+                            onSend = { sendAndClear() },
+                        ),
+                        trailingIcon = {
+                            IconButton(
+                                enabled = newComment.isNotBlank(),
+                                onClick = { sendAndClear() },
+                            ) {
+                                Icon(
+                                    Icons.AutoMirrored.Default.Send,
+                                    contentDescription = null,
+                                )
+                            }
+                        }
+                    )
+
+                    if (expanded) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement =
+                                Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator()
+                            } else if (error != null) {
+                                Icon(
+                                    Icons.Default.Warning,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Text(error.toString())
+                            } else if (comments != null) {
+                                if (comments.isEmpty()) {
+                                    Icon(
+                                        Icons.AutoMirrored.Default.Comment,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(48.dp)
+                                    )
+                                    Text(stringResource(R.string.no_comments))
+                                } else {
+                                    LazyColumn(
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.spacedBy(
+                                            12.dp,
+                                            Alignment.Top
+                                        ),
+                                    ) {
+                                        items(comments, key = { it.id }) { comment ->
+                                            Comment(
+                                                userNickname = comment.user.nickname,
+                                                userAvatarUrl = comment.user.avatarUrl,
+                                                commentText = comment.text,
+                                                createdAt = comment.createdAt,
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun Comment(
+        userNickname: String,
+        userAvatarUrl: String?,
+        commentText: String,
+        createdAt: Instant,
+    ) {
+        val avatarPainter = rememberAsyncImagePainter(
+            model = userAvatarUrl,
+        )
+        val avatarPainterState by avatarPainter.state.collectAsState()
+
+        Row(
+            Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+        ) {
+            if (avatarPainterState is AsyncImagePainter.State.Success) {
+                Image(
+                    avatarPainter,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape),
+                )
+            } else {
+                Icon(
+                    Icons.Default.AccountCircle,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape),
+                )
+            }
+            Box(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                val createdAtStr = DateTimeFormatter
+                    .ofLocalizedDateTime(FormatStyle.SHORT)
+                    .format(createdAt.toLocalDateTime(TimeZone.of("UTC+3")).toJavaLocalDateTime())
+
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(userNickname, style = Typography.titleMedium)
+                    Text(createdAtStr, style = Typography.labelMedium)
+                }
+                Box(Modifier.height(4.dp))
+                Text(commentText)
             }
         }
     }

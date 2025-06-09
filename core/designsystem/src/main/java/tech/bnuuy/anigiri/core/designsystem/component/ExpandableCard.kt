@@ -26,13 +26,17 @@ fun ExpandableCard(
     modifier: Modifier = Modifier,
     titleModifier: Modifier = Modifier,
     expandable: Boolean = true,
+    onExpansionChanged: (expanded: Boolean) -> Unit = { },
     content: @Composable ColumnScope.(expanded: Boolean) -> Unit,
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     ContentCard (
         modifier = Modifier
-            .clickable(expandable) { expanded = !expanded }
+            .clickable(expandable) {
+                expanded = !expanded
+                onExpansionChanged(expanded)
+            }
             .animateContentSize()
             .then(modifier),
     ) {

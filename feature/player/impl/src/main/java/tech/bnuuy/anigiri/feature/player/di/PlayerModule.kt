@@ -7,15 +7,19 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import tech.bnuuy.anigiri.core.nav.Routes
 import tech.bnuuy.anigiri.feature.player.api.data.repository.EpisodeRepository
+import tech.bnuuy.anigiri.feature.player.api.usecase.GetCommentsUseCase
 import tech.bnuuy.anigiri.feature.player.api.usecase.GetEpisodeUseCase
 import tech.bnuuy.anigiri.feature.player.data.repository.EpisodeRepositoryImpl
 import tech.bnuuy.anigiri.feature.player.presentation.PlayerScreen
 import tech.bnuuy.anigiri.feature.player.presentation.PlayerViewModel
+import tech.bnuuy.anigiri.feature.player.usecase.GetCommentsUseCaseImpl
 import tech.bnuuy.anigiri.feature.player.usecase.GetEpisodeUseCaseImpl
 
 val playerModule = module {
     factoryOf(::EpisodeRepositoryImpl) bind EpisodeRepository::class
+
     factoryOf(::GetEpisodeUseCaseImpl) bind GetEpisodeUseCase::class
+    factoryOf(::GetCommentsUseCaseImpl) bind GetCommentsUseCase::class
 
     viewModelOf(::PlayerViewModel)
 }

@@ -5,7 +5,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
-        android:configChanges="keyboardHidden|orientation|screenSize"
         android:name=".AnigiriApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -17,6 +16,7 @@
         android:theme="@style/Theme.Anigiri"
         tools:targetApi="31">
         <activity
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"

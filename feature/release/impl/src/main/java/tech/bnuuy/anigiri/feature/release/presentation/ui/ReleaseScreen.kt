@@ -9,12 +9,10 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -66,6 +64,7 @@ import tech.bnuuy.anigiri.core.designsystem.component.ContentCard
 import tech.bnuuy.anigiri.core.designsystem.component.ExpandableCard
 import tech.bnuuy.anigiri.core.designsystem.component.ExpandableTextCard
 import tech.bnuuy.anigiri.core.designsystem.component.Poster
+import tech.bnuuy.anigiri.core.designsystem.format
 import tech.bnuuy.anigiri.core.designsystem.theme.Typography
 import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
 import tech.bnuuy.anigiri.core.nav.Routes
@@ -74,7 +73,6 @@ import tech.bnuuy.anigiri.feature.release.api.data.model.Episode
 import tech.bnuuy.anigiri.feature.release.api.data.model.Release
 import tech.bnuuy.anigiri.feature.release.presentation.ReleaseViewModel
 import tech.bnuuy.anigiri.feature.release.presentation.model.ReleaseAction
-import kotlin.time.Duration
 
 val SectionsHeight = 80.dp
 
@@ -93,7 +91,6 @@ class ReleaseScreen(val releaseId: Int) : Screen {
         
         val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
-        WindowInsets.ime
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
@@ -499,16 +496,6 @@ class ReleaseScreen(val releaseId: Int) : Screen {
             ) {
                 rightSection()
             }
-        }
-    }
-    
-    private fun Duration.format() = toComponents { hours, minutes, seconds, _ ->
-        val minutesStr = "$minutes".padStart(2, '0')
-        val secondsStr = "$seconds".padStart(2, '0')
-        if (hours == 0L) {
-            "${minutesStr}:${secondsStr}"
-        } else {
-            "${hours}:${minutesStr}:${secondsStr}"
         }
     }
 }
