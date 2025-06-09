@@ -5,4 +5,7 @@
     <string name="comments">Комментарии</string>
     <string name="no_comments">Комментариев пока нет. Оставьте первый!</string>
     <string name="your_comment">Ваш комментарий…</string>
+    <string name="not_authorized">Авторизуйтесь, чтобы оставить комментарий</string>
+    <string name="comment_send_error">Ошибка при отправке комментария: %1$s</string>
+    <string name="comment_send_success">Комментарий отправлен!</string>
 </resources>

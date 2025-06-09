@@ -37,6 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -77,9 +78,11 @@ import kotlinx.datetime.toLocalDateTime
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectAsState
+import org.orbitmvi.orbit.compose.collectSideEffect
 import tech.bnuuy.anigiri.core.designsystem.component.CardElevation
 import tech.bnuuy.anigiri.core.designsystem.component.ContentCard
 import tech.bnuuy.anigiri.core.designsystem.theme.Typography
+import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
 import tech.bnuuy.anigiri.feature.player.R
 import tech.bnuuy.anigiri.feature.player.api.data.model.Comment
 import tech.bnuuy.anigiri.feature.player.api.data.model.Episode
@@ -94,6 +97,7 @@ internal class PlayerScreen(val episodeId: String) : Screen {
     @Composable
     override fun Content() {
         val nav = LocalNavigator.currentOrThrow
+        val snackbarHostState = LocalSnackbarHostState.current
 
         val vm = koinViewModel<PlayerViewModel> { parametersOf(episodeId) }
         val state by vm.collectAsState()
@@ -152,6 +156,20 @@ internal class PlayerScreen(val episodeId: String) : Screen {
             }
         }
 
+        vm.collectSideEffect { effect ->
+            when (effect) {
+                is PlayerSideEffect.SendCommentError -> snackbarHostState.showSnackbar(
+                    context.getString(R.string.comment_send_error, effect.error)
+                )
+                PlayerSideEffect.SendCommentSuccess -> {
+                    vm.dispatch(PlayerAction.LoadComments)
+                    snackbarHostState.showSnackbar(
+                        context.getString(R.string.comment_send_success)
+                    )
+                }
+            }
+        }
+
         val onBackClicked: () -> Unit = { nav.pop() }
         val changeFullscreen: () -> Unit = {
             if (orientation == Configuration.ORIENTATION_PORTRAIT) {
@@ -163,7 +181,9 @@ internal class PlayerScreen(val episodeId: String) : Screen {
             }
         }
 
-        Scaffold { innerPadding ->
+        Scaffold(
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+        ) { innerPadding ->
             var columnModifier: Modifier = Modifier
             if (orientation == Configuration.ORIENTATION_PORTRAIT) {
                 columnModifier = columnModifier.padding(innerPadding)
@@ -214,6 +234,8 @@ internal class PlayerScreen(val episodeId: String) : Screen {
                             isLoading = state.areCommentsLoading,
                             error = state.commentsError,
                             onLoadComments = { vm.dispatch(PlayerAction.LoadComments) },
+                            isLoadingSending = state.isProfileLoading || state.isCommentSending,
+                            isAuthorizedToSend = state.isAuthorized,
                             sendComment = { vm.dispatch(PlayerAction.SendComment(it)) }
                         )
                     }
@@ -300,6 +322,8 @@ internal class PlayerScreen(val episodeId: String) : Screen {
         isLoading: Boolean = false,
         error: Throwable? = null,
         onLoadComments: () -> Unit,
+        isAuthorizedToSend: Boolean,
+        isLoadingSending: Boolean,
         sendComment: (String) -> Unit,
     ) {
         var expanded by rememberSaveable { mutableStateOf(false) }
@@ -312,7 +336,7 @@ internal class PlayerScreen(val episodeId: String) : Screen {
         )
 
         var newComment by rememberSaveable { mutableStateOf("") }
-        val sendAndClear = {
+        val send = {
             if (newComment.isNotBlank()) {
                 sendComment(newComment.trim())
                 newComment = ""
@@ -355,6 +379,7 @@ internal class PlayerScreen(val episodeId: String) : Screen {
 
                     OutlinedTextField(
                         newComment,
+                        enabled = isAuthorizedToSend && !isLoadingSending,
                         modifier = Modifier
                             .padding(
                                 bottom = 8.dp,
@@ -365,20 +390,30 @@ internal class PlayerScreen(val episodeId: String) : Screen {
                         onValueChange = { newComment = it },
                         singleLine = true,
                         maxLines = 1,
-                        placeholder = { Text(stringResource(R.string.your_comment)) },
+                        placeholder = {
+                            if (isAuthorizedToSend) {
+                                Text(stringResource(R.string.your_comment))
+                            } else {
+                                Text(stringResource(R.string.not_authorized))
+                            }
+                        },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                         keyboardActions = KeyboardActions(
-                            onSend = { sendAndClear() },
+                            onSend = { send() },
                         ),
                         trailingIcon = {
-                            IconButton(
-                                enabled = newComment.isNotBlank(),
-                                onClick = { sendAndClear() },
-                            ) {
-                                Icon(
-                                    Icons.AutoMirrored.Default.Send,
-                                    contentDescription = null,
-                                )
+                            if (isLoadingSending) {
+                                CircularProgressIndicator()
+                            } else {
+                                IconButton(
+                                    enabled = newComment.isNotBlank() && isAuthorizedToSend,
+                                    onClick = { send() },
+                                ) {
+                                    Icon(
+                                        Icons.AutoMirrored.Default.Send,
+                                        contentDescription = null,
+                                    )
+                                }
                             }
                         }
                     )

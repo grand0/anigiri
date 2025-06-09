@@ -11,6 +11,12 @@ data class PlayerState(
     val comments: List<Comment>? = null,
     val areCommentsLoading: Boolean = false,
     val commentsError: Throwable? = null,
+
+    val isAuthorized: Boolean = false,
+    val isProfileLoading: Boolean = true,
+    val profileError: Throwable? = null,
+
+    val isCommentSending: Boolean = false,
 ) {
     val isReadyToPlay: Boolean
         get() = episode != null && !isLoading && error == null

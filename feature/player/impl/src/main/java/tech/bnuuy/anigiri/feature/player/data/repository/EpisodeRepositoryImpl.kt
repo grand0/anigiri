@@ -20,4 +20,8 @@ class EpisodeRepositoryImpl(
     override suspend fun getCommentsForEpisode(id: String): List<Comment> {
         return commentsDataSource.getCommentsForEpisode(id).mapList()
     }
+
+    override suspend fun sendCommentForEpisode(text: String, episodeId: String) {
+        commentsDataSource.sendCommentForEpisode(text, episodeId)
+    }
 }
