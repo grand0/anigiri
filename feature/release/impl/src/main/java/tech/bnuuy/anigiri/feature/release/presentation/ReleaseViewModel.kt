@@ -1,11 +1,14 @@
 package tech.bnuuy.anigiri.feature.release.presentation
 
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.annotation.OrbitExperimental
 import org.orbitmvi.orbit.viewmodel.container
 import tech.bnuuy.anigiri.feature.release.api.usecase.AddToFavoritesUseCase
 import tech.bnuuy.anigiri.feature.release.api.usecase.CheckFavoriteReleaseUseCase
+import tech.bnuuy.anigiri.feature.release.api.usecase.GetRecommendationsUseCase
 import tech.bnuuy.anigiri.feature.release.api.usecase.GetReleaseUseCase
 import tech.bnuuy.anigiri.feature.release.api.usecase.RemoveFromFavoritesUseCase
 import tech.bnuuy.anigiri.feature.release.presentation.model.ReleaseAction
@@ -17,6 +20,7 @@ class ReleaseViewModel(
     private val checkFavoriteReleaseUseCase: CheckFavoriteReleaseUseCase,
     private val addToFavoritesUseCase: AddToFavoritesUseCase,
     private val removeFromFavoritesUseCase: RemoveFromFavoritesUseCase,
+    private val getRecommendationsUseCase: GetRecommendationsUseCase,
 ) : ViewModel(), ContainerHost<ReleaseState, Nothing> {
     override val container = container<ReleaseState, Nothing>(ReleaseState()) {
         refresh()
@@ -32,7 +36,10 @@ class ReleaseViewModel(
     
     private fun refresh() = intent {
         getRelease()
-        checkFavorite()
+        coroutineScope {
+            launch { checkFavorite() }
+            launch { getRecommendations() }
+        }
     }
     
     @OptIn(OrbitExperimental::class)
@@ -52,6 +59,26 @@ class ReleaseViewModel(
                 isLoading = false,
                 error = result.exceptionOrNull(),
             )
+        }
+    }
+
+    @OptIn(OrbitExperimental::class)
+    private suspend fun getRecommendations() = subIntent {
+        state.release?.let {
+            reduce {
+                state.copy(
+                    areRecommendationsLoading = true,
+                    recommendationsError = null,
+                )
+            }
+            val result = runCatching { getRecommendationsUseCase(it) }
+            reduce {
+                state.copy(
+                    recommendations = result.getOrDefault(state.recommendations),
+                    areRecommendationsLoading = false,
+                    recommendationsError = result.exceptionOrNull(),
+                )
+            }
         }
     }
     
