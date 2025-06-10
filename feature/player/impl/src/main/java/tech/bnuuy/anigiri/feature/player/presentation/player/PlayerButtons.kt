@@ -105,5 +105,8 @@ internal fun PlayerTime(
     val currentPositionStr = currentPosition.milliseconds.format()
     val durationStr = state.duration.milliseconds.format()
 
-    Text("$currentPositionStr / $durationStr")
+    Text(
+        "$currentPositionStr / $durationStr",
+        color = Color.White,
+    )
 }
