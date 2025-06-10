@@ -12,7 +12,6 @@ import androidx.media3.common.listen
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun rememberPlayerPositionState(player: Player): PlayerPositionState {
@@ -41,7 +40,7 @@ class PlayerPositionState(private val player: Player) {
                 while (true) {
                     currentPosition = if (isEnabled) player.currentPosition else 0
                     duration = if (isEnabled) player.duration else 0
-                    delay(1.seconds / 10)
+                    delay(POSITION_UPDATE_RATE_MS)
                 }
             }
             launch {
@@ -65,5 +64,9 @@ class PlayerPositionState(private val player: Player) {
     private fun shouldEnableSeek(): Boolean {
         return player.isCommandAvailable(Player.COMMAND_GET_CURRENT_MEDIA_ITEM) &&
                 player.isCommandAvailable(Player.COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
+    }
+
+    companion object {
+        const val POSITION_UPDATE_RATE_MS = 100L
     }
 }
