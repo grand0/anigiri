@@ -1,6 +1,7 @@
 package tech.bnuuy.anigiri.feature.release.presentation.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,12 +9,10 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -51,6 +50,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cafe.adriel.voyager.core.registry.ScreenRegistry
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -64,14 +64,15 @@ import tech.bnuuy.anigiri.core.designsystem.component.ContentCard
 import tech.bnuuy.anigiri.core.designsystem.component.ExpandableCard
 import tech.bnuuy.anigiri.core.designsystem.component.ExpandableTextCard
 import tech.bnuuy.anigiri.core.designsystem.component.Poster
+import tech.bnuuy.anigiri.core.designsystem.format
 import tech.bnuuy.anigiri.core.designsystem.theme.Typography
 import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
+import tech.bnuuy.anigiri.core.nav.Routes
 import tech.bnuuy.anigiri.feature.release.R
 import tech.bnuuy.anigiri.feature.release.api.data.model.Episode
 import tech.bnuuy.anigiri.feature.release.api.data.model.Release
 import tech.bnuuy.anigiri.feature.release.presentation.ReleaseViewModel
 import tech.bnuuy.anigiri.feature.release.presentation.model.ReleaseAction
-import kotlin.time.Duration
 
 val SectionsHeight = 80.dp
 
@@ -90,7 +91,6 @@ class ReleaseScreen(val releaseId: Int) : Screen {
         
         val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
-        WindowInsets.ime
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
@@ -136,7 +136,8 @@ class ReleaseScreen(val releaseId: Int) : Screen {
                     release = state.release,
                     contentPadding = innerPadding,
                     isRefreshing = state.isLoading,
-                    onRefresh = { vm.dispatch(ReleaseAction.Refresh) }
+                    onRefresh = { vm.dispatch(ReleaseAction.Refresh) },
+                    onEpisodeClick = { nav.push(ScreenRegistry.get(Routes.Player(it.id))) }
                 )
             }
         }
@@ -207,6 +208,7 @@ class ReleaseScreen(val releaseId: Int) : Screen {
         contentPadding: PaddingValues,
         isRefreshing: Boolean,
         onRefresh: () -> Unit,
+        onEpisodeClick: (Episode) -> Unit,
     ) {
         val posterPainter = rememberAsyncImagePainter(
             model = release?.posterUrl,
@@ -290,7 +292,7 @@ class ReleaseScreen(val releaseId: Int) : Screen {
                     if ((release.episodesTotal ?: 0) != 0) {
                         item {
                             Box(Modifier.padding(horizontal = 12.dp)) {
-                                EpisodesCard(release = release)
+                                EpisodesCard(release = release, onEpisodeClick = onEpisodeClick)
                             }
                             Spacer(Modifier.height(12.dp))
                         }
@@ -358,7 +360,7 @@ class ReleaseScreen(val releaseId: Int) : Screen {
     }
     
     @Composable
-    private fun EpisodesCard(release: Release) {
+    private fun EpisodesCard(release: Release, onEpisodeClick: (Episode) -> Unit) {
         ExpandableCard(
             title = stringResource(R.string.episodes),
             modifier = Modifier
@@ -404,16 +406,26 @@ class ReleaseScreen(val releaseId: Int) : Screen {
             
             if (expanded) {
                 for (episode in release.episodes ?: emptyList()) {
-                    EpisodeItem(episode)
+                    val clickable = episode.mediaStreams.hls1080 != null ||
+                            episode.mediaStreams.hls720 != null ||
+                            episode.mediaStreams.hls480 != null
+                    EpisodeItem(
+                        episode,
+                        onClick = if (clickable) {
+                            { onEpisodeClick(episode) }
+                        } else null
+                    )
                 }
             }
         }
     }
     
     @Composable
-    private fun EpisodeItem(episode: Episode) {
+    private fun EpisodeItem(episode: Episode, onClick: (() -> Unit)? = null) {
         Row(
-            Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            Modifier
+                .clickable(enabled = onClick != null) { onClick?.invoke() }
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -484,16 +496,6 @@ class ReleaseScreen(val releaseId: Int) : Screen {
             ) {
                 rightSection()
             }
-        }
-    }
-    
-    private fun Duration.format() = toComponents { hours, minutes, seconds, _ ->
-        val minutesStr = "$minutes".padStart(2, '0')
-        val secondsStr = "$seconds".padStart(2, '0')
-        if (hours == 0L) {
-            "${minutesStr}:${secondsStr}"
-        } else {
-            "${hours}:${minutesStr}:${secondsStr}"
         }
     }
 }

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="episode_full_title_placeholder">Эпизод %1$d • %2$s</string>
+    <string name="episode_ordinal_title_placeholder">Эпизод %1$d</string>
+    <string name="comments">Комментарии</string>
+    <string name="no_comments">Комментариев пока нет. Оставьте первый!</string>
+    <string name="your_comment">Ваш комментарий…</string>
+    <string name="not_authorized">Авторизуйтесь, чтобы оставить комментарий</string>
+    <string name="comment_send_error">Ошибка при отправке комментария: %1$s</string>
+    <string name="comment_send_success">Комментарий отправлен!</string>
+</resources>

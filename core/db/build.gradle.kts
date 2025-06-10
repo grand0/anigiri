@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "tech.bnuuy.anigiri.core.db"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26

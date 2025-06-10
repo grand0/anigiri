@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "tech.bnuuy.anigiri.feature.release.api"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26
