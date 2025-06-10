@@ -9,4 +9,8 @@ data class ReleaseState(
 
     val isFavoriteLoading: Boolean = false,
     val isFavorite: Boolean? = null,
+
+    val recommendations: List<Release> = emptyList(),
+    val areRecommendationsLoading: Boolean = true,
+    val recommendationsError: Throwable? = null,
 )

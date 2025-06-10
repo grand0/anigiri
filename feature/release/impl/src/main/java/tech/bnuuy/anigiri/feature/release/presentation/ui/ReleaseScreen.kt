@@ -1,5 +1,6 @@
 package tech.bnuuy.anigiri.feature.release.presentation.ui
 
+import android.view.Choreographer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,6 +22,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.TvOff
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -64,6 +67,7 @@ import tech.bnuuy.anigiri.core.designsystem.component.ContentCard
 import tech.bnuuy.anigiri.core.designsystem.component.ExpandableCard
 import tech.bnuuy.anigiri.core.designsystem.component.ExpandableTextCard
 import tech.bnuuy.anigiri.core.designsystem.component.Poster
+import tech.bnuuy.anigiri.core.designsystem.component.PosterListItem
 import tech.bnuuy.anigiri.core.designsystem.format
 import tech.bnuuy.anigiri.core.designsystem.theme.Typography
 import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
@@ -137,7 +141,17 @@ class ReleaseScreen(val releaseId: Int) : Screen {
                     contentPadding = innerPadding,
                     isRefreshing = state.isLoading,
                     onRefresh = { vm.dispatch(ReleaseAction.Refresh) },
-                    onEpisodeClick = { nav.push(ScreenRegistry.get(Routes.Player(it.id))) }
+                    onEpisodeClick = { nav.push(ScreenRegistry.get(Routes.Player(it.id))) },
+                    recommendations = state.recommendations,
+                    areRecommendationsLoading = state.areRecommendationsLoading,
+                    recommendationsError = state.recommendationsError,
+                    onRecommendationClick = { rec ->
+                        // hack for this issue: https://github.com/adrielcafe/voyager/issues/541
+                        nav.pop()
+                        Choreographer.getInstance().postFrameCallback {
+                            nav.push(ScreenRegistry.get(Routes.Release(rec.id)))
+                        }
+                    }
                 )
             }
         }
@@ -209,6 +223,10 @@ class ReleaseScreen(val releaseId: Int) : Screen {
         isRefreshing: Boolean,
         onRefresh: () -> Unit,
         onEpisodeClick: (Episode) -> Unit,
+        recommendations: List<Release> = emptyList(),
+        areRecommendationsLoading: Boolean = false,
+        recommendationsError: Throwable? = null,
+        onRecommendationClick: (Release) -> Unit = {},
     ) {
         val posterPainter = rememberAsyncImagePainter(
             model = release?.posterUrl,
@@ -296,6 +314,18 @@ class ReleaseScreen(val releaseId: Int) : Screen {
                             }
                             Spacer(Modifier.height(12.dp))
                         }
+                    }
+
+                    item {
+                        Box(Modifier.padding(horizontal = 12.dp)) {
+                            RecommendationsCard(
+                                recommendations = recommendations,
+                                areRecommendationsLoading = areRecommendationsLoading,
+                                recommendationsError = recommendationsError,
+                                onRecommendationClick = onRecommendationClick,
+                            )
+                        }
+                        Spacer(Modifier.height(12.dp))
                     }
                 }
             }
@@ -497,5 +527,64 @@ class ReleaseScreen(val releaseId: Int) : Screen {
                 rightSection()
             }
         }
+    }
+
+    @Composable
+    private fun RecommendationsCard(
+        recommendations: List<Release> = emptyList(),
+        areRecommendationsLoading: Boolean = false,
+        recommendationsError: Throwable? = null,
+        onRecommendationClick: (Release) -> Unit = {}
+    ) {
+        ExpandableCard (
+            title = stringResource(R.string.recommendations),
+            modifier = Modifier.padding(8.dp),
+            titleModifier = Modifier.padding(vertical = 8.dp),
+            expandable = recommendations.isNotEmpty() || recommendationsError != null
+        ) { expanded ->
+            if (recommendations.isEmpty()
+                && !areRecommendationsLoading
+                && recommendationsError != null) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(Icons.Default.TvOff, contentDescription = null)
+                    Text(stringResource(R.string.no_recommendations), textAlign = TextAlign.Center)
+                }
+            } else if (recommendationsError != null) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(Icons.Default.Warning, contentDescription = null)
+                    Text(recommendationsError.toString(), textAlign = TextAlign.Center)
+                }
+            } else if (expanded && areRecommendationsLoading) {
+                CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
+            } else if (expanded) {
+                recommendations.forEach { rec ->
+                    RecommendationItem(
+                        release = rec,
+                        onClick = { onRecommendationClick(rec) },
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun RecommendationItem(release: Release, onClick: () -> Unit = {}) {
+        val posterPainter = rememberAsyncImagePainter(model = release.posterUrl)
+        val painterState by posterPainter.state.collectAsState()
+
+        PosterListItem(
+            title = release.name,
+            description = release.description,
+            painter = posterPainter,
+            isImageLoading = painterState is AsyncImagePainter.State.Loading,
+            isImageError = painterState is AsyncImagePainter.State.Error,
+            modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        )
     }
 }

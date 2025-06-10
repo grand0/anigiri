@@ -13,4 +13,6 @@
     <string name="n_minutes">%1$s мин</string>
     <string name="episode_duration">Длина эпизода</string>
     <string name="unnamed">Безымянный</string>
+    <string name="recommendations">Похожие релизы</string>
+    <string name="no_recommendations">Мы не нашли похожих релизов :(</string>
 </resources>

@@ -6,6 +6,10 @@ import tech.bnuuy.anigiri.core.network.util.buildStorageUrl
 import tech.bnuuy.anigiri.feature.release.api.data.model.Genre
 import tech.bnuuy.anigiri.feature.release.api.data.model.Release
 
+internal fun List<ReleaseResponse>.mapList(): List<Release> = map {
+    it.toDomain()
+}
+
 internal fun ReleaseResponse.toDomain(): Release {
     val srcUrl = posters.srcUrl?.let { buildStorageUrl(it) }
     val thumbUrl = posters.thumbnailUrl?.let { buildStorageUrl(it) }
