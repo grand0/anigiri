@@ -25,7 +25,7 @@ import tech.bnuuy.anigiri.feature.search.api.usecase.FetchGenresUseCase
 import tech.bnuuy.anigiri.feature.search.api.usecase.FetchYearsUseCase
 import tech.bnuuy.anigiri.feature.search.api.usecase.GetAllSearchQueriesUseCase
 import tech.bnuuy.anigiri.feature.search.api.usecase.SearchCatalogUseCase
-import tech.bnuuy.anigiri.feature.search.data.model.CatalogSearchUiFilter
+import tech.bnuuy.anigiri.feature.search.data.model.CatalogSearchFilter
 import tech.bnuuy.anigiri.feature.search.paging.SearchPagingSource
 
 internal class SearchViewModel(
@@ -63,7 +63,7 @@ internal class SearchViewModel(
         }
     }
 
-    private fun search(filter: CatalogSearchUiFilter) = intent {
+    private fun search(filter: CatalogSearchFilter) = intent {
         reduce { 
             state.copy(filter = filter)
         }

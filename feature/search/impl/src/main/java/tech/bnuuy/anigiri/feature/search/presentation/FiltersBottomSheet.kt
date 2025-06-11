@@ -52,23 +52,24 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import tech.bnuuy.anigiri.core.designsystem.theme.Typography
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.AgeRating
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.ProductionStatus
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.PublishStatus
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.ReleaseType
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.Season
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.Sorting
 import tech.bnuuy.anigiri.feature.search.R
 import tech.bnuuy.anigiri.feature.search.api.data.model.Genre
-import tech.bnuuy.anigiri.feature.search.data.enumeration.AgeRating
-import tech.bnuuy.anigiri.feature.search.data.enumeration.ProductionStatus
-import tech.bnuuy.anigiri.feature.search.data.enumeration.PublishStatus
-import tech.bnuuy.anigiri.feature.search.data.enumeration.ReleaseType
-import tech.bnuuy.anigiri.feature.search.data.enumeration.Season
-import tech.bnuuy.anigiri.feature.search.data.enumeration.Sorting
-import tech.bnuuy.anigiri.feature.search.data.model.CatalogSearchUiFilter
+import tech.bnuuy.anigiri.feature.search.data.model.CatalogSearchFilter
+import tech.bnuuy.anigiri.feature.search.presentation.mapper.presentationNameId
 import kotlin.math.roundToInt
 
 @Suppress("LongMethod")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FiltersBottomSheet(
-    initialFilter: CatalogSearchUiFilter,
-    onDismiss: (CatalogSearchUiFilter) -> Unit,
+    initialFilter: CatalogSearchFilter,
+    onDismiss: (CatalogSearchFilter) -> Unit,
     allGenres: List<Genre>? = null,
     minYear: Int? = null,
     maxYear: Int? = null,
@@ -87,13 +88,13 @@ fun FiltersBottomSheet(
     var productionStatus by remember { mutableStateOf(initialFilter.productionStatus) }
     
     fun makeFilter() = initialFilter.copy(
-        genres = genres.toList(),
-        types = types.toList(),
-        seasons = seasons.toList(),
+        genres = genres.toSet(),
+        types = types.toSet(),
+        seasons = seasons.toSet(),
         fromYear = fromYear,
         toYear = toYear,
         sorting = sorting,
-        ageRatings = ageRatings.toList(),
+        ageRatings = ageRatings.toSet(),
         publishStatus = publishStatus,
         productionStatus = productionStatus,
     )
@@ -134,8 +135,8 @@ fun FiltersBottomSheet(
                         title = stringResource(R.string.sorting),
                         choices = Sorting.entries,
                         selected = sorting,
-                        choiceLabel = { ctx.getString(it.labelResId) },
-                        onSelected = { sorting = it ?: CatalogSearchUiFilter.DEFAULT_SORTING },
+                        choiceLabel = { ctx.getString(it.presentationNameId()) },
+                        onSelected = { sorting = it ?: CatalogSearchFilter.DEFAULT_SORTING },
                         showBadge = false,
                     )
                     if (!allGenres.isNullOrEmpty()) {
@@ -150,13 +151,13 @@ fun FiltersBottomSheet(
                         title = stringResource(R.string.release_type),
                         choices = ReleaseType.entries,
                         selected = types,
-                        choiceLabel = { ctx.getString(it.labelResId) },
+                        choiceLabel = { ctx.getString(it.presentationNameId()) },
                     )
                     MultipleChoiceFilterSection(
                         title = stringResource(R.string.season),
                         choices = Season.entries,
                         selected = seasons,
-                        choiceLabel = { ctx.getString(it.labelResId) },
+                        choiceLabel = { ctx.getString(it.presentationNameId()) },
                     )
                     if (minYear != null && maxYear != null) {
                         RangeFilterSection(
@@ -173,20 +174,20 @@ fun FiltersBottomSheet(
                         title = stringResource(R.string.age_rating),
                         choices = AgeRating.entries,
                         selected = ageRatings,
-                        choiceLabel = { ctx.getString(it.labelResId) },
+                        choiceLabel = { ctx.getString(it.presentationNameId()) },
                     )
                     SingleChoiceFilterSection(
                         title = stringResource(R.string.publish_status),
                         choices = PublishStatus.entries,
                         selected = publishStatus,
-                        choiceLabel = { ctx.getString(it.labelResId) },
+                        choiceLabel = { ctx.getString(it.presentationNameId()) },
                         onSelected = { publishStatus = it },
                     )
                     SingleChoiceFilterSection(
                         title = stringResource(R.string.production_status),
                         choices = ProductionStatus.entries,
                         selected = productionStatus,
-                        choiceLabel = { ctx.getString(it.labelResId) },
+                        choiceLabel = { ctx.getString(it.presentationNameId()) },
                         onSelected = { productionStatus = it },
                     )
                     Spacer(Modifier.height(ButtonDefaults.MinHeight + 24.dp))
@@ -212,7 +213,7 @@ fun FiltersBottomSheet(
                         seasons.clear()
                         fromYear = null
                         toYear = null
-                        sorting = CatalogSearchUiFilter.DEFAULT_SORTING
+                        sorting = CatalogSearchFilter.DEFAULT_SORTING
                         ageRatings.clear()
                         publishStatus = null
                         productionStatus = null
