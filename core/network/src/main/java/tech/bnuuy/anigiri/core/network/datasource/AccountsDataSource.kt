@@ -10,6 +10,10 @@ import io.ktor.http.contentType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import tech.bnuuy.anigiri.core.network.cache.FavoritesMemoryCache
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.AgeRating
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.ReleaseType
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.Season
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.Sorting
 import tech.bnuuy.anigiri.core.network.datasource.request.AuthRequest
 import tech.bnuuy.anigiri.core.network.datasource.request.ReleaseId
 import tech.bnuuy.anigiri.core.network.datasource.response.MetaContentResponse
@@ -65,14 +69,14 @@ class AccountsDataSource(
     suspend fun favoriteReleases(
         page: Int = 1,
         limit: Int = 15,
-        genres: List<Int>? = null,
-        types: List<String>? = null,
-        seasons: List<String>? = null,
+        genres: Set<Int>? = null,
+        types: Set<ReleaseType>? = null,
+        seasons: Set<Season>? = null,
         fromYear: Int? = null,
         toYear: Int? = null,
         search: String? = null,
-        sorting: String? = null,
-        ageRatings: List<String>? = null,
+        sorting: Sorting? = null,
+        ageRatings: Set<AgeRating>? = null,
     ): MetaContentResponse<ReleaseResponse> = withContext(Dispatchers.IO) {
         val resp = http.getAuthenticated(Accounts.Users.Me.Favorites.Releases()) {
             url {
@@ -80,13 +84,14 @@ class AccountsDataSource(
                     append("page", page.toString())
                     append("limit", limit.toString())
                     genres?.let { append("f[genres]", genres.joinToString(",")) }
-                    types?.let { append("f[types]", types.joinToString(",")) }
-                    seasons?.let { append("f[seasons]", seasons.joinToString(",")) }
+                    types?.let { append("f[types]", types.joinToString(",") { it.value }) }
+                    seasons?.let { append("f[seasons]", seasons.joinToString(",") { it.value }) }
                     fromYear?.let { append("f[years][from_year]", fromYear.toString()) }
                     toYear?.let { append("f[years][to_year]", toYear.toString()) }
                     search?.let { append("f[search]", search) }
-                    sorting?.let { append("f[sorting]", sorting) }
-                    ageRatings?.let { append("f[age_ratings]", ageRatings.joinToString(",")) }
+                    sorting?.let { append("f[sorting]", sorting.value) }
+                    ageRatings?.let { append("f[age_ratings]",
+                        ageRatings.joinToString(",") { it.value }) }
                 }
             }
         }
