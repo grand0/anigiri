@@ -5,12 +5,11 @@ import androidx.paging.PagingState
 import tech.bnuuy.anigiri.feature.search.api.data.model.PagedContent
 import tech.bnuuy.anigiri.feature.search.api.data.model.Release
 import tech.bnuuy.anigiri.feature.search.api.usecase.SearchCatalogUseCase
-import tech.bnuuy.anigiri.feature.search.data.mapper.toDomain
-import tech.bnuuy.anigiri.feature.search.data.model.CatalogSearchUiFilter
+import tech.bnuuy.anigiri.feature.search.data.model.CatalogSearchFilter
 
 class SearchPagingSource(
     private val searchCatalogUseCase: SearchCatalogUseCase,
-    private val filter: CatalogSearchUiFilter,
+    private val filter: CatalogSearchFilter,
     private val onPageReceived: (PagedContent<Release>) -> Unit,
 ) : PagingSource<Int, Release>() {
     
@@ -27,7 +26,7 @@ class SearchPagingSource(
             val resp = searchCatalogUseCase(
                 filter.copy(
                     page = page,
-                ).toDomain()
+                )
             )
             onPageReceived(resp)
             return LoadResult.Page(

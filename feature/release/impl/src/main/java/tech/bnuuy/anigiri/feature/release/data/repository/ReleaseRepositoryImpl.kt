@@ -1,6 +1,7 @@
 package tech.bnuuy.anigiri.feature.release.data.repository
 
 import tech.bnuuy.anigiri.core.network.datasource.AnimeDataSource
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.Sorting
 import tech.bnuuy.anigiri.feature.release.api.data.model.Genre
 import tech.bnuuy.anigiri.feature.release.api.data.model.Release
 import tech.bnuuy.anigiri.feature.release.api.data.repository.ReleaseRepository
@@ -21,8 +22,8 @@ internal class ReleaseRepositoryImpl(
     ): List<Release> {
         return source.searchCatalog(
             limit = limit,
-            genres = genres.map { it.id },
-            sorting = "YEAR_DESC"
+            genres = genres.map { it.id }.toSet(),
+            sorting = Sorting.YEAR_DESC
         ).data.mapList()
     }
 }

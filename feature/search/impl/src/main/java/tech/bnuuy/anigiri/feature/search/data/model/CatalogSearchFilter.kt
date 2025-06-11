@@ -1,27 +1,28 @@
 package tech.bnuuy.anigiri.feature.search.data.model
 
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.AgeRating
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.ProductionStatus
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.PublishStatus
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.ReleaseType
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.Season
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.Sorting
 import tech.bnuuy.anigiri.feature.search.api.data.model.Genre
-import tech.bnuuy.anigiri.feature.search.data.enumeration.AgeRating
-import tech.bnuuy.anigiri.feature.search.data.enumeration.ProductionStatus
-import tech.bnuuy.anigiri.feature.search.data.enumeration.PublishStatus
-import tech.bnuuy.anigiri.feature.search.data.enumeration.ReleaseType
-import tech.bnuuy.anigiri.feature.search.data.enumeration.Season
-import tech.bnuuy.anigiri.feature.search.data.enumeration.Sorting
+import tech.bnuuy.anigiri.feature.search.api.data.model.ICatalogSearchFilter
 
-data class CatalogSearchUiFilter(
+data class CatalogSearchFilter(
     val page: Int = 1,
     val limit: Int = 15,
-    val genres: List<Genre> = emptyList(),
-    val types: List<ReleaseType> = emptyList(),
-    val seasons: List<Season> = emptyList(),
+    val genres: Set<Genre> = emptySet(),
+    val types: Set<ReleaseType> = emptySet(),
+    val seasons: Set<Season> = emptySet(),
     val fromYear: Int? = null,
     val toYear: Int? = null,
     val search: String = "",
     var sorting: Sorting = DEFAULT_SORTING,
-    val ageRatings: List<AgeRating> = emptyList(),
+    val ageRatings: Set<AgeRating> = emptySet(),
     val publishStatus: PublishStatus? = null,
     val productionStatus: ProductionStatus? = null,
-) {
+) : ICatalogSearchFilter() {
     
     fun isDefault(
         minYear: Int? = null,
