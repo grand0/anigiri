@@ -44,7 +44,10 @@ import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -104,6 +107,7 @@ class ReleaseScreen(val releaseId: Int) : Screen {
         val state by vm.collectAsState()
         
         val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+        var showCollections by remember { mutableStateOf(false) }
 
         Scaffold(
             modifier = Modifier
@@ -163,7 +167,7 @@ class ReleaseScreen(val releaseId: Int) : Screen {
                     collectionType = state.collectionReleaseType.type,
                     onCollectionTypeClick = {
                         if (state.collectionReleaseType.authorized) {
-                            TODO()
+                            showCollections = true
                         } else {
                             coroutineScope.launch {
                                 snackbarHostState.showSnackbar(
@@ -175,6 +179,23 @@ class ReleaseScreen(val releaseId: Int) : Screen {
                     isCollectionTypeLoading = state.isCollectionTypeLoading,
                 )
             }
+        }
+
+        if (showCollections) {
+            CollectionsBottomSheet(
+                selectedType = state.collectionReleaseType.type,
+                onSelect = { type ->
+                    showCollections = false
+                    if (type != null) {
+                        vm.dispatch(ReleaseAction.AddToCollection(type))
+                    } else {
+                        vm.dispatch(ReleaseAction.RemoveFromCollections)
+                    }
+                },
+                onDismiss = {
+                    showCollections = false
+                }
+            )
         }
     }
 
@@ -591,7 +612,9 @@ class ReleaseScreen(val releaseId: Int) : Screen {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
-                Modifier.weight(1f).fillMaxHeight(),
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
@@ -603,7 +626,9 @@ class ReleaseScreen(val releaseId: Int) : Screen {
                     .padding(dividerPadding)
             )
             Column(
-                Modifier.weight(1f).fillMaxHeight(),
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
