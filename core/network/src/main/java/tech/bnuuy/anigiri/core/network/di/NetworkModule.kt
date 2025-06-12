@@ -41,6 +41,7 @@ val networkModule = module {
             install(DefaultRequest)
             install(ContentEncoding) {
                 brotli()
+                gzip()
             }
 
             if (BuildConfig.DEBUG) {
