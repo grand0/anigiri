@@ -10,4 +10,5 @@ sealed class Routes : ScreenProvider {
     data object Favorites : Routes()
     data class Player(val episodeId: String) : Routes()
     data object Collections : Routes()
+    data object Schedule : Routes()
 }

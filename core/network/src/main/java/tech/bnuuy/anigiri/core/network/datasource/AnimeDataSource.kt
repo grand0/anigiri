@@ -15,6 +15,7 @@ import tech.bnuuy.anigiri.core.network.datasource.response.EpisodeResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.GenreResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.MetaContentResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.ReleaseResponse
+import tech.bnuuy.anigiri.core.network.datasource.response.ScheduleReleaseResponse
 import tech.bnuuy.anigiri.core.network.resources.Anime
 
 class AnimeDataSource(
@@ -79,5 +80,9 @@ class AnimeDataSource(
 
     suspend fun getEpisode(id: String): EpisodeResponse = withContext(Dispatchers.IO) {
         http.get(Anime.Releases.Episodes.Id(id = id)).body()
+    }
+
+    suspend fun getWeekSchedule(): List<ScheduleReleaseResponse> = withContext(Dispatchers.IO) {
+        http.get(Anime.Schedule.Week()).body()
     }
 }

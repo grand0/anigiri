@@ -37,6 +37,8 @@ data class ReleaseResponse(
     val latestEpisode: EpisodeResponse?,
     @SerialName("episodes")
     val episodes: List<EpisodeResponse>?,
+    @SerialName("publish_day")
+    val publishDay: PublishDayResponse?,
 ) {
 
     @Serializable
@@ -74,4 +76,12 @@ data class ReleaseResponse(
             val name: String,
         )
     }
+
+    @Serializable
+    data class PublishDayResponse(
+        @SerialName("value")
+        val value: Int,
+        @SerialName("description")
+        val description: String,
+    )
 }

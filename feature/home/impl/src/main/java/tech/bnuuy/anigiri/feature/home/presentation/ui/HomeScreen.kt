@@ -39,6 +39,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Casino
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
@@ -74,7 +75,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.registry.ScreenRegistry
@@ -100,7 +100,6 @@ import tech.bnuuy.anigiri.feature.home.presentation.HomeViewModel
 import tech.bnuuy.anigiri.feature.home.presentation.model.HomeAction
 import tech.bnuuy.anigiri.feature.home.presentation.model.HomeSideEffect
 import kotlin.math.roundToInt
-import kotlin.toString
 
 class HomeScreen : Screen {
 
@@ -156,6 +155,7 @@ class HomeScreen : Screen {
                 error = state.latestReleasesError,
                 onRandomClick = { vm.dispatch(HomeAction.FetchRandomRelease) },
                 isRandomLoading = state.isRandomReleaseLoading,
+                onScheduleClick = { nav.push(ScreenRegistry.get(Routes.Schedule)) },
                 goToFavorites = { nav.push(ScreenRegistry.get(Routes.Favorites)) },
             )
         }
@@ -275,6 +275,7 @@ class HomeScreen : Screen {
         error: Throwable? = null,
         isRandomLoading: Boolean,
         onRandomClick: () -> Unit,
+        onScheduleClick: () -> Unit,
         goToFavorites: () -> Unit,
         contentPadding: PaddingValues = PaddingValues(0.dp),
     ) {
@@ -310,7 +311,15 @@ class HomeScreen : Screen {
                 contentPadding = contentPadding,
             ) {
                 item {
-                    Box(Modifier.padding(16.dp)) {
+                    Row(
+                        Modifier.padding(16.dp).fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ScheduleButton(
+                            onClick = onScheduleClick,
+                            modifier = Modifier.weight(1f, fill = false).fillMaxWidth()
+                        )
                         FetchRandomReleaseButton(
                             onClick = onRandomClick,
                             isLoading = isRandomLoading,
@@ -332,17 +341,26 @@ class HomeScreen : Screen {
                         )
                     }
                 }
-                
-                item {
-                    Text(
-                        stringResource(R.string.coming_soon),
-                        style = Typography.labelMedium,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 36.dp, bottom = 36.dp),
-                        textAlign = TextAlign.Center,
-                    )
-                }
+            }
+        }
+    }
+
+    @Composable
+    fun ScheduleButton(
+        onClick: () -> Unit,
+        modifier: Modifier = Modifier,
+    ) {
+        OutlinedButton(
+            onClick = onClick,
+            modifier = modifier,
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Default.CalendarMonth, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.schedule))
             }
         }
     }
@@ -351,24 +369,19 @@ class HomeScreen : Screen {
     fun FetchRandomReleaseButton(
         onClick: () -> Unit,
         isLoading: Boolean,
+        modifier: Modifier = Modifier,
     ) {
         OutlinedButton(
             onClick = onClick,
             enabled = !isLoading,
+            modifier = modifier,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) { 
-                
+            Box {
                 if (isLoading) {
                     CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
                 } else {
                     Icon(Icons.Default.Casino, contentDescription = null)
                 }
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(R.string.random_release))
             }
         }
     }
@@ -555,43 +568,6 @@ class HomeScreen : Screen {
                 item {
                     suffix()
                 }
-            }
-        }
-    }
-
-    @Composable
-    private fun ReleaseItem(release: Release) {
-        Row(
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.Top,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            val posterPainter = rememberAsyncImagePainter(
-                model = release.posterUrl,
-                contentScale = ContentScale.Crop,
-            )
-            val painterState by posterPainter.state.collectAsState()
-            Poster(
-                painter = posterPainter,
-                isLoading = painterState is AsyncImagePainter.State.Loading,
-                isError = painterState is AsyncImagePainter.State.Error,
-                modifier = Modifier.padding(8.dp)
-            )
-            Column(
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.Start,
-                modifier = Modifier.padding(8.dp)
-            ) {
-                Text(
-                    release.name,
-                    style = Typography.titleLarge,
-                )
-                Text(
-                    release.description,
-                    maxLines = 4,
-                    overflow = TextOverflow.Ellipsis,
-                    style = Typography.bodySmall,
-                )
             }
         }
     }
