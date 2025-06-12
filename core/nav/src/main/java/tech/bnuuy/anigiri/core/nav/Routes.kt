@@ -9,4 +9,5 @@ sealed class Routes : ScreenProvider {
     data object Profile : Routes()
     data object Favorites : Routes()
     data class Player(val episodeId: String) : Routes()
+    data object Collections : Routes()
 }

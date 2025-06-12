@@ -2,6 +2,7 @@
 <resources>
     <string name="description">Описание</string>
     <string name="authorize_to_add_favorites">Авторизуйтесь, чтобы добавлять релизы в избранное</string>
+    <string name="authorize_to_add_collection">Авторизуйтесь, чтобы добавлять релизы в коллекции</string>
     <string name="is_in_production">Сейчас в озвучке</string>
     <string name="is_not_in_production">Озвучка завершена</string>
     <string name="ongoing">Онгоинг</string>
@@ -15,4 +16,11 @@
     <string name="unnamed">Безымянный</string>
     <string name="recommendations">Похожие релизы</string>
     <string name="no_recommendations">Мы не нашли похожих релизов :(</string>
+    <string name="planned_label">Запланировано</string>
+    <string name="watched_label">Просмотрено</string>
+    <string name="watching_label">Смотрю</string>
+    <string name="postponed_label">Отложено</string>
+    <string name="abandoned_label">Брошено</string>
+    <string name="add_to_collection">В коллекцию</string>
+    <string name="remove_from_collection">Удалить из коллекции</string>
 </resources>

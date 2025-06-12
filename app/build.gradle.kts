@@ -54,6 +54,7 @@ dependencies {
     implementation(project(":feature:profile:impl"))
     implementation(project(":feature:favorites:impl"))
     implementation(project(":feature:player:impl"))
+    implementation(project(":feature:collections:impl"))
 
     implementation(libs.bundles.voyager)
     implementation(libs.bundles.koin)

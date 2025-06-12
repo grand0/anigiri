@@ -15,9 +15,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
@@ -38,19 +40,25 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.registry.ScreenRegistry
@@ -63,6 +71,7 @@ import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 import org.orbitmvi.orbit.compose.collectAsState
+import tech.bnuuy.anigiri.core.designsystem.component.CardElevation
 import tech.bnuuy.anigiri.core.designsystem.component.ContentCard
 import tech.bnuuy.anigiri.core.designsystem.component.ExpandableCard
 import tech.bnuuy.anigiri.core.designsystem.component.ExpandableTextCard
@@ -72,13 +81,17 @@ import tech.bnuuy.anigiri.core.designsystem.format
 import tech.bnuuy.anigiri.core.designsystem.theme.Typography
 import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
 import tech.bnuuy.anigiri.core.nav.Routes
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.CollectionType
 import tech.bnuuy.anigiri.feature.release.R
 import tech.bnuuy.anigiri.feature.release.api.data.model.Episode
 import tech.bnuuy.anigiri.feature.release.api.data.model.Release
 import tech.bnuuy.anigiri.feature.release.presentation.ReleaseViewModel
+import tech.bnuuy.anigiri.feature.release.presentation.mapper.icon
+import tech.bnuuy.anigiri.feature.release.presentation.mapper.presentationName
 import tech.bnuuy.anigiri.feature.release.presentation.model.ReleaseAction
 
 val SectionsHeight = 80.dp
+val SectionsDividerPadding = 12.dp
 
 class ReleaseScreen(val releaseId: Int) : Screen {
     
@@ -94,32 +107,14 @@ class ReleaseScreen(val releaseId: Int) : Screen {
         val state by vm.collectAsState()
         
         val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+        var showCollections by remember { mutableStateOf(false) }
 
         Scaffold(
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
             topBar = {
-                AppBar(
-                    onBackPressed = { nav.pop() },
-                    showFavoriteButton = state.release != null,
-                    onFavoritePressed = {
-                        if (state.isFavorite == true) {
-                            vm.dispatch(ReleaseAction.RemoveFromFavorites)
-                        } else if (state.isFavorite == false) {
-                            vm.dispatch(ReleaseAction.AddToFavorites)
-                        } else {
-                            coroutineScope.launch {
-                                snackbarHostState.showSnackbar(
-                                    context.getString(R.string.authorize_to_add_favorites)
-                                )
-                            }
-                        }
-                    },
-                    isFavorite = state.isFavorite == true,
-                    isFavoriteLoading = state.isFavoriteLoading,
-                    favoritesCount = state.release?.favorites ?: 0,
-                )
+                AppBar(onBackPressed = { nav.pop() })
             },
             snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { innerPadding ->
@@ -151,20 +146,62 @@ class ReleaseScreen(val releaseId: Int) : Screen {
                         Choreographer.getInstance().postFrameCallback {
                             nav.push(ScreenRegistry.get(Routes.Release(rec.id)))
                         }
-                    }
+                    },
+                    showActions = state.release != null,
+                    onFavoritePressed = {
+                        if (state.isFavorite == true) {
+                            vm.dispatch(ReleaseAction.RemoveFromFavorites)
+                        } else if (state.isFavorite == false) {
+                            vm.dispatch(ReleaseAction.AddToFavorites)
+                        } else {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    context.getString(R.string.authorize_to_add_favorites)
+                                )
+                            }
+                        }
+                    },
+                    isFavorite = state.isFavorite == true,
+                    isFavoriteLoading = state.isFavoriteLoading,
+                    favoritesCount = state.release?.favorites ?: 0,
+                    collectionType = state.collectionReleaseType.type,
+                    onCollectionTypeClick = {
+                        if (state.collectionReleaseType.authorized) {
+                            showCollections = true
+                        } else {
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(
+                                    context.getString(R.string.authorize_to_add_collection)
+                                )
+                            }
+                        }
+                    },
+                    isCollectionTypeLoading = state.isCollectionTypeLoading,
                 )
             }
+        }
+
+        if (showCollections) {
+            CollectionsBottomSheet(
+                selectedType = state.collectionReleaseType.type,
+                onSelect = { type ->
+                    showCollections = false
+                    if (type != null) {
+                        vm.dispatch(ReleaseAction.AddToCollection(type))
+                    } else {
+                        vm.dispatch(ReleaseAction.RemoveFromCollections)
+                    }
+                },
+                onDismiss = {
+                    showCollections = false
+                }
+            )
         }
     }
 
     @Composable
     private fun AppBar(
-        onBackPressed: () -> Unit,
-        showFavoriteButton: Boolean,
-        onFavoritePressed: () -> Unit,
-        isFavorite: Boolean,
-        isFavoriteLoading: Boolean,
-        favoritesCount: Int,
+        onBackPressed: () -> Unit
     ) {
         val gradient = Brush.verticalGradient(
             colors = listOf(
@@ -188,30 +225,6 @@ class ReleaseScreen(val releaseId: Int) : Screen {
             ) {
                 Icon(Icons.AutoMirrored.Default.ArrowBack, contentDescription = null)
             }
-
-            if (showFavoriteButton) {
-                Row(
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text("$favoritesCount")
-                    Spacer(Modifier.width(8.dp))
-                    IconButton(
-                        onClick = onFavoritePressed,
-                        enabled = !isFavoriteLoading,
-                    ) {
-                        if (isFavoriteLoading) {
-                            CircularProgressIndicator()
-                        } else {
-                            Icon(
-                                if (isFavorite) Icons.Default.Favorite
-                                    else Icons.Default.FavoriteBorder,
-                                contentDescription = null,
-                            )
-                        }
-                    }
-                }
-            }
         }
     }
     
@@ -227,6 +240,14 @@ class ReleaseScreen(val releaseId: Int) : Screen {
         areRecommendationsLoading: Boolean = false,
         recommendationsError: Throwable? = null,
         onRecommendationClick: (Release) -> Unit = {},
+        showActions: Boolean = false,
+        onFavoritePressed: () -> Unit = {},
+        isFavorite: Boolean = false,
+        isFavoriteLoading: Boolean = false,
+        favoritesCount: Int = 0,
+        collectionType: CollectionType? = null,
+        onCollectionTypeClick: () -> Unit = {},
+        isCollectionTypeLoading: Boolean = false,
     ) {
         val posterPainter = rememberAsyncImagePainter(
             model = release?.posterUrl,
@@ -290,12 +311,29 @@ class ReleaseScreen(val releaseId: Int) : Screen {
                             Spacer(Modifier.height(16.dp))
                         }
                     }
-                    
+
+                    if (showActions) {
+                        item {
+                            Box(Modifier.padding(horizontal = 12.dp)) {
+                                ActionButtonsGroup(
+                                    onFavoritePressed = onFavoritePressed,
+                                    isFavorite = isFavorite,
+                                    isFavoriteLoading = isFavoriteLoading,
+                                    favoritesCount = favoritesCount,
+                                    collectionType = collectionType,
+                                    onCollectionTypeClick = onCollectionTypeClick,
+                                    isCollectionTypeLoading = isCollectionTypeLoading,
+                                )
+                            }
+                            Spacer(Modifier.height(12.dp))
+                        }
+                    }
+
                     item {
                         Box(Modifier.padding(horizontal = 12.dp)) {
                             CommonInfoCard(release)
                         }
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(12.dp))
                     }
                     
                     if (release.description.isNotBlank()) {
@@ -329,6 +367,67 @@ class ReleaseScreen(val releaseId: Int) : Screen {
                     }
                 }
             }
+        }
+    }
+
+    @Composable
+    private fun ActionButtonsGroup(
+        onFavoritePressed: () -> Unit = {},
+        isFavorite: Boolean = false,
+        isFavoriteLoading: Boolean = false,
+        favoritesCount: Int = 0,
+        collectionType: CollectionType? = null,
+        onCollectionTypeClick: () -> Unit = {},
+        isCollectionTypeLoading: Boolean = false,
+    ) {
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(percent = 50))
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(CardElevation)),
+        ) {
+            HalfSections(
+                height = 60.dp,
+                dividerPadding = PaddingValues(vertical = 12.dp),
+                leftSection = {
+                    Row(
+                        Modifier
+                            .fillMaxSize()
+                            .clickable { onFavoritePressed() },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                    ) {
+                        if (isFavoriteLoading) {
+                            CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+                        } else {
+                            val icon = if (isFavorite) {
+                                Icons.Default.Favorite
+                            } else {
+                                Icons.Default.FavoriteBorder
+                            }
+                            Icon(icon, contentDescription = null)
+                        }
+                        Text(favoritesCount.toString())
+                    }
+                },
+                rightSection = {
+                    Row(
+                        Modifier
+                            .fillMaxSize()
+                            .clickable { onCollectionTypeClick() },
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                    ) {
+                        if (isCollectionTypeLoading) {
+                            CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+                        } else {
+                            val icon = collectionType.icon()
+                            val label = collectionType.presentationName()
+                            Icon(icon, contentDescription = null)
+                            Text(stringResource(label))
+                        }
+                    }
+                }
+            )
         }
     }
     
@@ -505,24 +604,33 @@ class ReleaseScreen(val releaseId: Int) : Screen {
     private fun HalfSections(
         leftSection: @Composable ColumnScope.() -> Unit,
         rightSection: @Composable ColumnScope.() -> Unit,
+        height: Dp = SectionsHeight,
+        dividerPadding: PaddingValues = PaddingValues(horizontal = SectionsDividerPadding),
     ) {
         Row(
+            modifier = Modifier.height(height),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
-                Modifier.weight(1f),
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
                 leftSection()
             }
             VerticalDivider(
                 Modifier
-                    .height(SectionsHeight)
-                    .padding(horizontal = 12.dp)
+                    .fillMaxHeight()
+                    .padding(dividerPadding)
             )
             Column(
-                Modifier.weight(1f),
+                Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
             ) {
                 rightSection()
             }
@@ -584,7 +692,9 @@ class ReleaseScreen(val releaseId: Int) : Screen {
             painter = posterPainter,
             isImageLoading = painterState is AsyncImagePainter.State.Loading,
             isImageError = painterState is AsyncImagePainter.State.Error,
-            modifier = Modifier.fillMaxWidth().clickable { onClick() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onClick() },
         )
     }
 }

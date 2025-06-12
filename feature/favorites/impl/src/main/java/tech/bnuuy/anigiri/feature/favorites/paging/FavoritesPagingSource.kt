@@ -9,7 +9,7 @@ import tech.bnuuy.anigiri.feature.favorites.api.usecase.FetchFavoriteReleasesUse
 internal class FavoritesPagingSource(
     private val fetchFavoriteReleasesUseCase: FetchFavoriteReleasesUseCase,
     private val onPageReceived: (PagedContent<Release>) -> Unit,
-    ) : PagingSource<Int, Release>() {
+) : PagingSource<Int, Release>() {
     
     override fun getRefreshKey(state: PagingState<Int, Release>): Int? {
         return state.anchorPosition?.let {

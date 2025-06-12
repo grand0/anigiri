@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="collections">Коллекции</string>
+    <string name="planned_label">Запланировано</string>
+    <string name="watched_label">Просмотрено</string>
+    <string name="watching_label">Смотрю</string>
+    <string name="postponed_label">Отложено</string>
+    <string name="abandoned_label">Брошено</string>
+    <string name="n_collection_releases">В коллекции %1$s релизов</string>
+</resources>

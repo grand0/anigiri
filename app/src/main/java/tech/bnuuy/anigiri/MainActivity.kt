@@ -17,6 +17,7 @@ import tech.bnuuy.anigiri.core.designsystem.theme.AnigiriTheme
 import tech.bnuuy.anigiri.core.designsystem.util.LocalSnackbarHostState
 import tech.bnuuy.anigiri.core.network.di.networkModule
 import tech.bnuuy.anigiri.di.appModule
+import tech.bnuuy.anigiri.feature.collections.di.collectionsModule
 import tech.bnuuy.anigiri.feature.favorites.di.favoritesModule
 import tech.bnuuy.anigiri.feature.home.di.homeModule
 import tech.bnuuy.anigiri.feature.home.presentation.ui.HomeScreen
@@ -43,6 +44,7 @@ class MainActivity : ComponentActivity() {
                     profileModule,
                     favoritesModule,
                     playerModule,
+                    collectionsModule,
                 )
             }) {
                 setSingletonImageLoaderFactory {

@@ -35,6 +35,16 @@ class Accounts {
                 @Resource("ids")
                 class Ids(val parent: Favorites = Favorites())
             }
+
+            @Resource("collections")
+            class Collections(val parent: Me = Me()) {
+
+                @Resource("releases")
+                class Releases(val parent: Collections = Collections())
+
+                @Resource("ids")
+                class Ids(val parent: Collections = Collections())
+            }
         }
     }
 }

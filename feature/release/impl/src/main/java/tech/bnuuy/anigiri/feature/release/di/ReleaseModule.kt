@@ -9,19 +9,23 @@ import tech.bnuuy.anigiri.core.nav.Routes
 import tech.bnuuy.anigiri.feature.release.api.data.repository.ProfileRepository
 import tech.bnuuy.anigiri.feature.release.api.data.repository.ReleaseRepository
 import tech.bnuuy.anigiri.feature.release.api.usecase.AddToFavoritesUseCase
+import tech.bnuuy.anigiri.feature.release.api.usecase.CheckCollectionReleaseUseCase
 import tech.bnuuy.anigiri.feature.release.api.usecase.CheckFavoriteReleaseUseCase
 import tech.bnuuy.anigiri.feature.release.api.usecase.GetRecommendationsUseCase
 import tech.bnuuy.anigiri.feature.release.api.usecase.GetReleaseUseCase
 import tech.bnuuy.anigiri.feature.release.api.usecase.RemoveFromFavoritesUseCase
+import tech.bnuuy.anigiri.feature.release.api.usecase.SetCollectionReleaseUseCase
 import tech.bnuuy.anigiri.feature.release.data.repository.ProfileRepositoryImpl
 import tech.bnuuy.anigiri.feature.release.data.repository.ReleaseRepositoryImpl
 import tech.bnuuy.anigiri.feature.release.presentation.ReleaseViewModel
 import tech.bnuuy.anigiri.feature.release.presentation.ui.ReleaseScreen
 import tech.bnuuy.anigiri.feature.release.usecase.AddToFavoritesUseCaseImpl
+import tech.bnuuy.anigiri.feature.release.usecase.CheckCollectionReleaseUseCaseImpl
 import tech.bnuuy.anigiri.feature.release.usecase.CheckFavoriteReleaseUseCaseImpl
 import tech.bnuuy.anigiri.feature.release.usecase.GetRecommendationsUseCaseImpl
 import tech.bnuuy.anigiri.feature.release.usecase.GetReleaseUseCaseImpl
 import tech.bnuuy.anigiri.feature.release.usecase.RemoveFromFavoritesUseCaseImpl
+import tech.bnuuy.anigiri.feature.release.usecase.SetCollectionReleaseUseCaseImpl
 
 val releaseModule = module {
     factoryOf(::ReleaseRepositoryImpl) bind ReleaseRepository::class
@@ -31,6 +35,8 @@ val releaseModule = module {
     factoryOf(::AddToFavoritesUseCaseImpl) bind AddToFavoritesUseCase::class
     factoryOf(::CheckFavoriteReleaseUseCaseImpl) bind CheckFavoriteReleaseUseCase::class
     factoryOf(::RemoveFromFavoritesUseCaseImpl) bind RemoveFromFavoritesUseCase::class
+    factoryOf(::CheckCollectionReleaseUseCaseImpl) bind CheckCollectionReleaseUseCase::class
+    factoryOf(::SetCollectionReleaseUseCaseImpl) bind SetCollectionReleaseUseCase::class
     factoryOf(::GetRecommendationsUseCaseImpl) bind GetRecommendationsUseCase::class
 
     viewModelOf(::ReleaseViewModel)

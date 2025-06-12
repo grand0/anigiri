@@ -2,10 +2,13 @@ package tech.bnuuy.anigiri.feature.profile.presentation
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,7 +26,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.CollectionsBookmark
 import androidx.compose.material.icons.filled.HowToReg
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -53,6 +58,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.registry.ScreenRegistry
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -61,6 +67,7 @@ import coil3.compose.rememberAsyncImagePainter
 import org.koin.androidx.compose.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
 import tech.bnuuy.anigiri.core.designsystem.theme.Typography
+import tech.bnuuy.anigiri.core.nav.Routes
 import tech.bnuuy.anigiri.feature.profile.R
 import tech.bnuuy.anigiri.feature.profile.api.data.model.Profile
 
@@ -93,6 +100,8 @@ class ProfileScreen : Screen {
                     profile = state.profile,
                     isProfileLoading = state.isProfileLoading,
                     isLoggingOut = state.isLoggingOut,
+                    onFavorites = { nav.push(ScreenRegistry.get(Routes.Favorites)) },
+                    onCollections = { nav.push(ScreenRegistry.get(Routes.Collections)) },
                     onRefresh = { vm.dispatch(ProfileAction.Refresh) },
                     onLogin = { showLoginSheet = true },
                     onLogout = { vm.dispatch(ProfileAction.Logout) },
@@ -153,6 +162,8 @@ class ProfileScreen : Screen {
         profile: Profile?,
         isProfileLoading: Boolean,
         isLoggingOut: Boolean,
+        onFavorites: () -> Unit,
+        onCollections: () -> Unit,
         onRefresh: () -> Unit,
         onLogout: () -> Unit,
         onLogin: () -> Unit,
@@ -213,6 +224,8 @@ class ProfileScreen : Screen {
                 if (profile != null) {
                     ProfileInfo(
                         profile = profile,
+                        onFavorites = onFavorites,
+                        onCollections = onCollections,
                         onLogout = onLogout,
                         isLoggingOut = isLoggingOut,
                     )
@@ -263,6 +276,8 @@ class ProfileScreen : Screen {
     @Composable
     private fun ColumnScope.ProfileInfo(
         profile: Profile,
+        onFavorites: () -> Unit,
+        onCollections: () -> Unit,
         onLogout: () -> Unit,
         isLoggingOut: Boolean,
     ) {
@@ -277,10 +292,30 @@ class ProfileScreen : Screen {
             style = Typography.labelSmall,
         )
         Spacer(Modifier.height(32.dp))
-        Text(
-            "Скоро здесь что-то появится!",
-            style = Typography.labelSmall,
-        )
+
+        Row(
+            Modifier
+                .clickable() { onFavorites() }
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.Start)
+        ) {
+            Icon(Icons.Default.Star, contentDescription = null)
+            Text(stringResource(R.string.favorites))
+        }
+        Row(
+            Modifier
+                .clickable() { onCollections() }
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.Start)
+        ) {
+            Icon(Icons.Default.CollectionsBookmark, contentDescription = null)
+            Text(stringResource(R.string.collections))
+        }
+
         Spacer(Modifier.height(32.dp))
         OutlinedButton(
             onClick = onLogout,

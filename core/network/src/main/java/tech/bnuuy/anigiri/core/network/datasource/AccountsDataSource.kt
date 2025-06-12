@@ -11,11 +11,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import tech.bnuuy.anigiri.core.network.cache.FavoritesMemoryCache
 import tech.bnuuy.anigiri.core.network.datasource.enumeration.AgeRating
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.CollectionType
 import tech.bnuuy.anigiri.core.network.datasource.enumeration.ReleaseType
 import tech.bnuuy.anigiri.core.network.datasource.enumeration.Season
 import tech.bnuuy.anigiri.core.network.datasource.enumeration.Sorting
 import tech.bnuuy.anigiri.core.network.datasource.request.AuthRequest
+import tech.bnuuy.anigiri.core.network.datasource.request.CollectionReleaseId
 import tech.bnuuy.anigiri.core.network.datasource.request.ReleaseId
+import tech.bnuuy.anigiri.core.network.datasource.response.CollectionReleaseIdResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.MetaContentResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.ProfileResponse
 import tech.bnuuy.anigiri.core.network.datasource.response.ReleaseResponse
@@ -138,6 +141,74 @@ class AccountsDataSource(
         when (resp.status) {
             HttpStatusCode.OK ->
                 favoritesMemoryCache.removeFavoriteReleases(releases.map { it.releaseId })
+            HttpStatusCode.Forbidden -> throw NotAuthorizedException()
+            else -> throw UnknownException(resp.status.description)
+        }
+    }
+
+    suspend fun collectionReleases(
+        page: Int = 1,
+        limit: Int = 15,
+        collectionType: CollectionType,
+        genres: Set<Int>? = null,
+        types: Set<ReleaseType>? = null,
+        fromYear: Int? = null,
+        toYear: Int? = null,
+        search: String? = null,
+        ageRatings: Set<AgeRating>? = null,
+    ): MetaContentResponse<ReleaseResponse> = withContext(Dispatchers.IO) {
+        val resp = http.getAuthenticated(Accounts.Users.Me.Collections.Releases()) {
+            url {
+                with(parameters) {
+                    append("page", page.toString())
+                    append("limit", limit.toString())
+                    append("type_of_collection", collectionType.value)
+                    genres?.let { append("f[genres]", genres.joinToString(",")) }
+                    types?.let { append("f[types]", types.joinToString(",") { it.value }) }
+                    fromYear?.let { append("f[years][from_year]", fromYear.toString()) }
+                    toYear?.let { append("f[years][to_year]", toYear.toString()) }
+                    search?.let { append("f[search]", search) }
+                    ageRatings?.let { append("f[age_ratings]",
+                        ageRatings.joinToString(",") { it.value }) }
+                }
+            }
+        }
+        when (resp.status) {
+            HttpStatusCode.OK -> resp.body()
+            HttpStatusCode.Forbidden -> throw NotAuthorizedException()
+            else -> throw UnknownException(resp.status.description)
+        }
+    }
+
+    suspend fun collectionReleasesIds(): List<CollectionReleaseIdResponse> =
+        withContext(Dispatchers.IO) {
+            val resp = http.getAuthenticated(Accounts.Users.Me.Collections.Ids())
+            when (resp.status) {
+                HttpStatusCode.OK -> resp.body()
+                HttpStatusCode.Forbidden -> throw NotAuthorizedException()
+                else -> throw UnknownException(resp.status.description)
+            }
+        }
+
+    suspend fun addToCollection(releases: List<CollectionReleaseId>) = withContext(Dispatchers.IO) {
+        val resp = http.ignoringBrotli().postAuthenticated(Accounts.Users.Me.Collections()) {
+            contentType(ContentType.Application.Json)
+            setBody(releases)
+        }
+        when (resp.status) {
+            HttpStatusCode.OK -> {}
+            HttpStatusCode.Forbidden -> throw NotAuthorizedException()
+            else -> throw UnknownException(resp.status.description)
+        }
+    }
+
+    suspend fun removeFromCollection(releases: List<ReleaseId>) = withContext(Dispatchers.IO) {
+        val resp = http.ignoringBrotli().deleteAuthenticated(Accounts.Users.Me.Collections()) {
+            contentType(ContentType.Application.Json)
+            setBody(releases)
+        }
+        when (resp.status) {
+            HttpStatusCode.OK -> {}
             HttpStatusCode.Forbidden -> throw NotAuthorizedException()
             else -> throw UnknownException(resp.status.description)
         }
