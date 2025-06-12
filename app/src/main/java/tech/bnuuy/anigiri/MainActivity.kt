@@ -24,6 +24,7 @@ import tech.bnuuy.anigiri.feature.home.presentation.ui.HomeScreen
 import tech.bnuuy.anigiri.feature.player.di.playerModule
 import tech.bnuuy.anigiri.feature.profile.di.profileModule
 import tech.bnuuy.anigiri.feature.release.di.releaseModule
+import tech.bnuuy.anigiri.feature.schedule.di.scheduleModule
 import tech.bnuuy.anigiri.feature.search.di.searchModule
 import tech.bnuuy.anigiri.util.DebugLogger
 
@@ -45,6 +46,7 @@ class MainActivity : ComponentActivity() {
                     favoritesModule,
                     playerModule,
                     collectionsModule,
+                    scheduleModule,
                 )
             }) {
                 setSingletonImageLoaderFactory {

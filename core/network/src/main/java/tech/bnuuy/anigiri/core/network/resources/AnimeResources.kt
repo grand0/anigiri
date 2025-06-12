@@ -43,4 +43,11 @@ class Anime {
             class Years(val parent: References = References())
         }
     }
+
+    @Resource("schedule")
+    class Schedule(val parent: Anime = Anime()) {
+
+        @Resource("week")
+        class Week(val parent: Schedule = Schedule())
+    }
 }
