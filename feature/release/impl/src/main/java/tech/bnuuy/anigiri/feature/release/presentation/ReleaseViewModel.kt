@@ -6,11 +6,15 @@ import kotlinx.coroutines.launch
 import org.orbitmvi.orbit.ContainerHost
 import org.orbitmvi.orbit.annotation.OrbitExperimental
 import org.orbitmvi.orbit.viewmodel.container
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.CollectionType
 import tech.bnuuy.anigiri.feature.release.api.usecase.AddToFavoritesUseCase
+import tech.bnuuy.anigiri.feature.release.api.usecase.CheckCollectionReleaseUseCase
 import tech.bnuuy.anigiri.feature.release.api.usecase.CheckFavoriteReleaseUseCase
 import tech.bnuuy.anigiri.feature.release.api.usecase.GetRecommendationsUseCase
 import tech.bnuuy.anigiri.feature.release.api.usecase.GetReleaseUseCase
 import tech.bnuuy.anigiri.feature.release.api.usecase.RemoveFromFavoritesUseCase
+import tech.bnuuy.anigiri.feature.release.api.usecase.SetCollectionReleaseUseCase
+import tech.bnuuy.anigiri.feature.release.data.model.CollectionReleaseType
 import tech.bnuuy.anigiri.feature.release.presentation.model.ReleaseAction
 import tech.bnuuy.anigiri.feature.release.presentation.model.ReleaseState
 
@@ -20,6 +24,8 @@ class ReleaseViewModel(
     private val checkFavoriteReleaseUseCase: CheckFavoriteReleaseUseCase,
     private val addToFavoritesUseCase: AddToFavoritesUseCase,
     private val removeFromFavoritesUseCase: RemoveFromFavoritesUseCase,
+    private val checkCollectionReleaseUseCase: CheckCollectionReleaseUseCase,
+    private val setCollectionReleaseUseCase: SetCollectionReleaseUseCase,
     private val getRecommendationsUseCase: GetRecommendationsUseCase,
 ) : ViewModel(), ContainerHost<ReleaseState, Nothing> {
     override val container = container<ReleaseState, Nothing>(ReleaseState()) {
@@ -31,6 +37,8 @@ class ReleaseViewModel(
             ReleaseAction.AddToFavorites -> addToFavorites()
             ReleaseAction.RemoveFromFavorites -> removeFromFavorites()
             ReleaseAction.Refresh -> refresh()
+            is ReleaseAction.AddToCollection -> addToCollection(action.type)
+            ReleaseAction.RemoveFromCollections -> removeFromCollections()
         }
     }
     
@@ -38,6 +46,7 @@ class ReleaseViewModel(
         getRelease()
         coroutineScope {
             launch { checkFavorite() }
+            launch { checkCollection() }
             launch { getRecommendations() }
         }
     }
@@ -138,6 +147,69 @@ class ReleaseViewModel(
                 state.copy(
                     isFavoriteLoading = false,
                     isFavorite = result.getOrDefault(state.isFavorite),
+                )
+            }
+        }
+    }
+
+    @OptIn(OrbitExperimental::class)
+    private suspend fun checkCollection() = subIntent {
+        state.release?.let {
+            reduce {
+                state.copy(
+                    isCollectionTypeLoading = true,
+                    collectionReleaseType = CollectionReleaseType(authorized = false),
+                )
+            }
+            val result = runCatching {
+                checkCollectionReleaseUseCase(it) as CollectionReleaseType
+            }
+            reduce {
+                state.copy(
+                    isCollectionTypeLoading = false,
+                    collectionReleaseType = result.getOrDefault(state.collectionReleaseType),
+                )
+            }
+        }
+    }
+
+    private fun addToCollection(type: CollectionType) = intent {
+        state.release?.let {
+            reduce {
+                state.copy(
+                    isCollectionTypeLoading = true,
+                )
+            }
+            val collectionReleaseType = CollectionReleaseType(type = type)
+            val result = runCatching {
+                setCollectionReleaseUseCase(it, collectionReleaseType)
+                collectionReleaseType
+            }
+            reduce {
+                state.copy(
+                    isCollectionTypeLoading = false,
+                    collectionReleaseType = result.getOrDefault(state.collectionReleaseType),
+                )
+            }
+        }
+    }
+
+    private fun removeFromCollections() = intent {
+        state.release?.let {
+            reduce {
+                state.copy(
+                    isCollectionTypeLoading = true,
+                )
+            }
+            val collectionReleaseType = CollectionReleaseType(type = null)
+            val result = runCatching {
+                setCollectionReleaseUseCase(it, collectionReleaseType)
+                collectionReleaseType
+            }
+            reduce {
+                state.copy(
+                    isCollectionTypeLoading = false,
+                    collectionReleaseType = result.getOrDefault(state.collectionReleaseType),
                 )
             }
         }

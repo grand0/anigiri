@@ -184,12 +184,7 @@ class AccountsDataSource(
         withContext(Dispatchers.IO) {
             val resp = http.getAuthenticated(Accounts.Users.Me.Collections.Ids())
             when (resp.status) {
-                HttpStatusCode.OK -> resp.body<List<List<Any>>>().map { elem ->
-                    CollectionReleaseIdResponse(
-                        id = elem[0] as Int,
-                        collectionType = CollectionType.byValue(elem[1] as String)!!
-                    )
-                }
+                HttpStatusCode.OK -> resp.body()
                 HttpStatusCode.Forbidden -> throw NotAuthorizedException()
                 else -> throw UnknownException(resp.status.description)
             }

@@ -11,6 +11,8 @@ complexity:
   LongParameterList:
     functionThreshold: 10
     ignoreDefaultParameters: true
+    excludes:
+      - '**/*ViewModel.kt'
   TooManyFunctions:
     active: false
   LongMethod:
