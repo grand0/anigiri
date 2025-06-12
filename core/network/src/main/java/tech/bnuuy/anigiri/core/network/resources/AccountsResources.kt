@@ -40,10 +40,10 @@ class Accounts {
             class Collections(val parent: Me = Me()) {
 
                 @Resource("releases")
-                class Releases(val parent: Favorites = Favorites())
+                class Releases(val parent: Collections = Collections())
 
                 @Resource("ids")
-                class Ids(val parent: Favorites = Favorites())
+                class Ids(val parent: Collections = Collections())
             }
         }
     }

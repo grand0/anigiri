@@ -2,8 +2,8 @@ package tech.bnuuy.anigiri.core.network.datasource.enumeration
 
 enum class CollectionType(val value: String) {
     PLANNED("PLANNED"),
-    WATCHED("WATCHED"),
     WATCHING("WATCHING"),
+    WATCHED("WATCHED"),
     POSTPONED("POSTPONED"),
     ABANDONED("ABANDONED");
 

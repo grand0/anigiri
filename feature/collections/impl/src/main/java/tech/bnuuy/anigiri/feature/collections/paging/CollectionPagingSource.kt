@@ -1,16 +1,19 @@
-package tech.bnuuy.anigiri.feature.favorites.paging
+package tech.bnuuy.anigiri.feature.collections.paging
 
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
-import tech.bnuuy.anigiri.feature.favorites.api.data.model.PagedContent
-import tech.bnuuy.anigiri.feature.favorites.api.data.model.Release
-import tech.bnuuy.anigiri.feature.favorites.api.usecase.FetchFavoriteReleasesUseCase
+import tech.bnuuy.anigiri.core.network.datasource.enumeration.CollectionType
+import tech.bnuuy.anigiri.feature.collections.api.data.model.PagedContent
+import tech.bnuuy.anigiri.feature.collections.api.data.model.Release
+import tech.bnuuy.anigiri.feature.collections.api.usecase.GetCollectionReleasesUseCase
+import tech.bnuuy.anigiri.feature.collections.data.model.CollectionFilter
 
-internal class FavoritesPagingSource(
-    private val fetchFavoriteReleasesUseCase: FetchFavoriteReleasesUseCase,
+internal class CollectionPagingSource(
+    private val collectionType: CollectionType,
+    private val getCollectionReleasesUseCase: GetCollectionReleasesUseCase,
     private val onPageReceived: (PagedContent<Release>) -> Unit,
 ) : PagingSource<Int, Release>() {
-    
+
     override fun getRefreshKey(state: PagingState<Int, Release>): Int? {
         return state.anchorPosition?.let {
             val anchorPage = state.closestPageToPosition(it)
@@ -21,7 +24,10 @@ internal class FavoritesPagingSource(
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, Release> {
         try {
             val page = params.key ?: 1
-            val resp = fetchFavoriteReleasesUseCase(page)
+            val resp = getCollectionReleasesUseCase(CollectionFilter(
+                page = page,
+                collectionType = collectionType,
+            ))
             onPageReceived(resp)
             return LoadResult.Page(
                 data = resp.data,
