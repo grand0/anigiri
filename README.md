@@ -1,5 +1,5 @@
 # Anigiri
-Приложение для поиска и просмотра аниме (пока без просмотра).
+Приложение для поиска и просмотра аниме.
 
 API: [AniLibria](https://anilibria.top/api/docs/v1#/) - включает в себя авторизацию.
 
@@ -32,8 +32,6 @@ API: [AniLibria](https://anilibria.top/api/docs/v1#/) - включает в се
 CI/CD:
 - запуск detekt и юнит-тестов (на pull request и push в master)
 - Firebase App Distribution (action запускается на push тега)
-
-Приглашение в группу тестировщиков: https://appdistribution.firebase.dev/i/18ec3aba38cd97b1
 
 Есть юнит-тесты на use-case.
 
